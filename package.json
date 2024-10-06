@@ -1,8 +1,8 @@
 {
   "name": "widgets-initializer",
   "description": "Initialize widgets in DOM recursively",
-  "version": "0.0.3",
-  "main": "index.js",
+  "version": "0.0.4",
+  "main": "src/index.js",
   "files": [
     "/src"
   ],
