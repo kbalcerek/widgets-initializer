@@ -1,11 +1,11 @@
 {
   "name": "widgets-initializer",
-  "description": "1. `npm i`\r 2. To Browse examples: `node .\\node_modules\\anywhere\\bin\\anywhere`",
-  "version": "0.0.2",
+  "description": "Initialize widgets in DOM recursively",
+  "version": "0.0.3",
   "main": "index.js",
-  "directories": {
-    "example": "examples"
-  },
+  "files": [
+    "/src"
+  ],
   "dependencies": {
   },
   "devDependencies": {
