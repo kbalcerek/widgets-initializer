@@ -1,4 +1,4 @@
-const WidgetsInitializer = (function() {
+(function(global) {
     let defaultOptions = {
         /** ignored when resolver is provided */
         useRelativePathToImportWidgetClass: false,
@@ -55,9 +55,14 @@ const WidgetsInitializer = (function() {
         }
     }
 
-    return {
+
+    const output = {
         init,
     };
-})();
 
-module.exports = WidgetsInitializer;
+    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+        module.exports = output;
+    } else {
+        global.WidgetsInitializer = output;
+    }
+})(typeof window !== 'undefined' ? window : global);

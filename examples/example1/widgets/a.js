@@ -1,4 +1,4 @@
-import BaseWidget from '../../../BaseWidget.js';
+import BaseWidget from '../../../src/BaseWidget.js';
 
 export default class AWidget extends BaseWidget {
     async init(target, done) {
