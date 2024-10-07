@@ -1,6 +1,15 @@
 const WidgetsInitializer = (function() {
     let defaultOptions = {
+        /** ignored when resolver is provided */
         useRelativePathToImportWidgetClass: false,
+        /** custom Widget classes dynamic loader.
+         * ```
+         * ```
+         * If provided this one will be used to load Widget classes (instead of import())
+         * ```
+         * (path) => new Promise()
+         * ```
+         */
         resolver: undefined,
     };
     let config = defaultOptions;
