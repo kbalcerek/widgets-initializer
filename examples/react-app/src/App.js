@@ -7,11 +7,11 @@ function App() {
   useEffect(() => {
     document.getElementById('init')?.addEventListener('click', async () => {
       WidgetsInitializer.init(document.getElementById('root'), (errors) => {
-          if (errors) {
-              console.log('Init completed with errors', errors);
-          } else {
-              console.log('Init successful');
-          }
+        if (errors) {
+          console.log('Init completed with errors', errors);
+        } else {
+          console.log('Init successful');
+        }
       }, {
         resolver: (path) => new Promise((resolve, reject) => {
           import(`./${path}.js`)
@@ -31,16 +31,16 @@ function App() {
     <div className="App">
 
       <div id="root">
-          <div widget="widgets/a">
-              <div widget="widgets/b"></div>
-          </div>
-          <div></div>
-          <div widget="widgets/c"></div>
+        <div widget="widgets/a">
+          <div widget="widgets/b"></div>
+        </div>
+        <div></div>
+        <div widget="widgets/c"></div>
       </div>
 
       <div className="controls">
-          <button id="init">Init</button>
-          <button id="destroy">Destroy</button>
+        <button id="init">Init</button>
+        <button id="destroy">Destroy</button>
       </div>
 
       <header className="App-header">

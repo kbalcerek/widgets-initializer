@@ -1,12 +1,12 @@
 export default class BaseWidget {
-    constructor() {
-    }
+  constructor() {
+  }
 
-    async init(node, done) {
-        console.log('inside BaseWidget.init()');
-        done();
-    }
+  async init(node, callback) {
+    console.log('inside BaseWidget.init()');
+    callback();
+  }
 
-    destroy() {
-    }
+  destroy() {
+  }
 }
