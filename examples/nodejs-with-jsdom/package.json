@@ -7,6 +7,6 @@
   "type": "module",
   "dependencies": {
     "jsdom": "^25.0.1",
-    "widgets-initializer": "^0.0.5"
+    "widgets-initializer": "^0.0.6"
   }
 }
