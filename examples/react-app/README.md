@@ -1,8 +1,11 @@
-# Getting Started with Create React App
+# React App widgets-initializer usage example
+
+developed under node version 18.17.1\
+See App.js for example
+
+#
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
-compatible with node version 18.17.1
 
 ## Available Scripts
 

@@ -1,6 +1,4 @@
-import BaseWidget from 'widgets-initializer/src/BaseWidget.js';
-import pkg from '../../../src/utils.js';
-const { sleep } = pkg;
+import { BaseWidget, sleep } from 'widgets-initializer';
 
 export default class AWidget extends BaseWidget {
   async init(targetNode, done) {
@@ -9,12 +7,7 @@ export default class AWidget extends BaseWidget {
       async () => {
         await sleep(2000);
 
-        if (targetNode.tagName.toLowerCase() === 'a') {
-          done && done(`AWidget(${this.widgetPath}): <a> tag is not supported`);
-          return;
-        }
-
-        const span = document.createElement('span');
+        const span = targetNode.ownerDocument.createElement('span');
         span.innerHTML = 'Widget A initialized';
         targetNode.appendChild(span);
 
@@ -23,6 +16,5 @@ export default class AWidget extends BaseWidget {
         done && done();
       }
     );
-
   }
 }

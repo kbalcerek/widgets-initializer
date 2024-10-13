@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import * as wInitializer from 'widgets-initializer'; // TODO: try to get rid of not used wInitializer.
+import { WidgetsInitializer } from 'widgets-initializer';
 
 
 function App() {
   useEffect(() => {
     document.getElementById('init')?.addEventListener('click', async () => {
-      window.WidgetsInitializer.init(document.getElementById('root'), (errors) => {
+      WidgetsInitializer.init(document.getElementById('root'), (errors) => {
         if (errors) {
           console.log('Init completed with errors', errors);
         } else {

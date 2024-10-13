@@ -43,7 +43,7 @@
     <button id="destroy">Destroy</button>
   </div>
 
-  <script src="../../src/index.js"></script>
+  <script src="../../dist/lib.script.js"></script>
   <script>
     document.getElementById('init').addEventListener('click', () => {
       WidgetsInitializer.init(document.getElementById('root'), (errors) => {
@@ -52,7 +52,19 @@
         } else {
           console.log('Init successful');
         }
-      }, { useRelativePathToImportWidgetClass: true });
+      }, {
+        resolver: (path) => new Promise((resolve, reject) => {
+        let relativePart = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+          import(`${relativePart}/${path}.js`)
+            .then((module) => {
+              resolve(module);
+            })
+            .catch((error) => {
+              console.error(`App.js: Error loading ${path}: ${error}`);
+              reject(error);
+            }); 
+        })
+       });
     });
 
     document.getElementById('destroy').addEventListener('click', () => {

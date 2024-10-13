@@ -2,17 +2,22 @@
   "name": "widgets-initializer",
   "description": "Initialize widgets in DOM recursively",
   "version": "0.0.5",
-  "main": "src/index.js",
+  "browser": "dist/lib.js",
+  "main": "dist/lib.node.js",
   "files": [
     "/src"
   ],
-  "dependencies": {
-  },
   "devDependencies": {
-    "anywhere": "^1.6.0"
+    "anywhere": "^1.6.0",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "example:1": "node .\\node_modules\\anywhere\\bin\\anywhere -u /examples/example1/index.html",
+    "build" : "webpack --config webpack.config.js",
+    "build:dev" : "webpack --env dev --config webpack.config.js",
+    "webpack:watch" : "webpack --env dev --config webpack.config.js --watch"
   },
   "repository": {
     "type": "git",

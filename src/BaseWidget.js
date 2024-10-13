@@ -1,4 +1,6 @@
-export default class BaseWidget {
+import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
+
+export class BaseWidget {
   isInitialized = false;
   /** method called internally after initialization is done.
    * it is resolver of isDonePromise

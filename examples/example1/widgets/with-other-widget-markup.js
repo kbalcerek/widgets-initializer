@@ -1,7 +1,4 @@
-import BaseWidget from '../../../src/BaseWidget.js';
-import { sleep } from '../../../src/utils.js';
-
-export default class WithOtherWidgetMarkupWidget extends BaseWidget {
+export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
   async init(targetNode, done) {
     console.log('initializing WithOtherWidgetMarkupWidget...');
 
@@ -14,7 +11,7 @@ export default class WithOtherWidgetMarkupWidget extends BaseWidget {
     super.init(targetNode,
       async () => {
         const sleepTime = 10; // Math.floor(Math.random()*5000) // <5000
-        await sleep(sleepTime);
+        await MyLibrary.sleep(sleepTime);
 
         const span = document.createElement('span');
         span.innerHTML = `

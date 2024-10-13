@@ -1,20 +1,26 @@
 import jsdom from 'jsdom';
-import * as wInitializer from 'widgets-initializer'; // TODO: try to get rid of not used wInitializer.
-// this is downside of forcing WidgetsInitializer to be singleton.
-// possible solution would be to use some bundler (webpack) to build separate nodejs/browser dists.
+import { WidgetsInitializer } from 'widgets-initializer';
 
 const { JSDOM } = jsdom;
 
 JSDOM.fromFile('index.html').then((dom) => {
-  const ss = new WidgetsInitializerInternal();
   WidgetsInitializer.init(dom.window.document.getElementById('root'), (errors) => {
     if (errors) {
       console.log('Init completed with errors', errors);
     } else {
       console.log('Init successful');
     }
+    console.log('DOM after widgets initialization finished: ', dom.window.document.body.innerHTML);
   }, {
-    useRelativePathToImportWidgetClass: true,
-    relativePath: import.meta.url.substring(0, import.meta.url.lastIndexOf('/')),
+    resolver: (path) => new Promise((resolve, reject) => {
+      import(`./${path}.mjs`)
+        .then((module) => {
+          resolve(module);
+        })
+        .catch((error) => {
+          console.error(`App.js: Error loading ${path}: ${error}`);
+          reject(error);
+        }); 
+    })
    });
 });
