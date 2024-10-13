@@ -1,0 +1,11 @@
+{
+  "name": "nodejs-with-jsdom",
+  "description": "",
+  "version": "0.0.1",
+  "author": "Kamil Balcerzak",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "jsdom": "^25.0.1"
+  }
+}

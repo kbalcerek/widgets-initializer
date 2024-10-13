@@ -9,10 +9,33 @@
 <body>
   <div id="root">
     <div widget="widgets/a">
-      <div widget="widgets/b"></div>
+      A
+      <div widget="widgets/b">
+        B
+        <div widget="widgets/c">C</div>
+      </div>
+    </div>
+    <div widget="widgets/e">
+      E
+      <div>
+        <div widget="widgets/c">C</div>
+      </div>
     </div>
     <div></div>
-    <div widget="widgets/c"></div>
+    <div>
+      <div widget="widgets/c">C</div>
+    </div>
+    <div>
+      <div>
+        <div widget="widgets/c">C</div>
+      </div>
+    </div>
+    <div widget="widgets/c">C</div>
+    <div widget="widgets/a">
+      A
+      <div widget="widgets/with-other-widget-markup">with-other-widget-markup</div>
+    </div>
+    <a widget="widgets/d">D</a>
   </div>
 
   <div class="controls">

@@ -1,13 +1,13 @@
-import BaseWidget from '../../../src/BaseWidget.js';
-import { sleep } from '../../../src/utils.js';
+import BaseWidget from 'widgets-initializer/src/BaseWidget.js';
+import pkg from '../../../src/utils.js';
+const { sleep } = pkg;
 
 export default class AWidget extends BaseWidget {
   async init(targetNode, done) {
     console.log('initializing AWidget...');
     super.init(targetNode,
       async () => {
-        const sleepTime = Math.floor(Math.random()*5000) // <5000
-        await sleep(sleepTime);
+        await sleep(2000);
 
         if (targetNode.tagName.toLowerCase() === 'a') {
           done && done(`AWidget(${this.widgetPath}): <a> tag is not supported`);
@@ -15,10 +15,10 @@ export default class AWidget extends BaseWidget {
         }
 
         const span = document.createElement('span');
-        span.innerHTML = `from AWidget: <B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
+        span.innerHTML = 'Widget A initialized';
         targetNode.appendChild(span);
 
-        console.log(`AWidget almost Initialized. sleepTime: ${sleepTime}`);
+        console.log('AWidget almost Initialized.');
 
         done && done();
       }

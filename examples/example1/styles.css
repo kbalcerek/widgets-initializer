@@ -1,5 +1,11 @@
-div[widget] {
+#root *[widget] {
   border: 1px solid #ccc;
+  padding: 10px;
+  margin: 5px;
+}
+
+#root *:not([widget]) {
+  border: 1px solid red;
   padding: 10px;
   margin: 5px;
 }

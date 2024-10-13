@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import WidgetsInitializer from 'widgets-initializer';
+import * as wInitializer from 'widgets-initializer'; // TODO: try to get rid of not used wInitializer.
+
 
 function App() {
   useEffect(() => {
     document.getElementById('init')?.addEventListener('click', async () => {
-      WidgetsInitializer.init(document.getElementById('root'), (errors) => {
+      window.WidgetsInitializer.init(document.getElementById('root'), (errors) => {
         if (errors) {
           console.log('Init completed with errors', errors);
         } else {
@@ -19,7 +20,7 @@ function App() {
               resolve(module);
             })
             .catch((error) => {
-              console.error('Error loading MyClass:', error);
+              console.error(`App.js: Error loading ${path}: ${error}`);
               reject(error);
             }); 
         })
