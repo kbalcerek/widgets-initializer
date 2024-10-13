@@ -20,9 +20,9 @@ To browse example run:\
 
 It is example of how to use library in node.js environment\
 (for example for testing purposes with 'jsdom')\
-See details in [](https://github.com/kbalcerek/widgets-initializer/tree/main/examples/nodejs-with-jsdom/README.md)
+See details in [/nodejs-with-jsdom/README.md](https://github.com/kbalcerek/widgets-initializer/tree/main/examples/nodejs-with-jsdom/README.md)
 
 ### 'react-app'
 
 It is example of how to use library in FrontEnd environments\
-See details in [](https://github.com/kbalcerek/widgets-initializer/tree/main/examples/react-app/README.md)
+See details in [/react-app/README.md](https://github.com/kbalcerek/widgets-initializer/tree/main/examples/react-app/README.md)

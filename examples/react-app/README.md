@@ -1,9 +1,10 @@
 # React App widgets-initializer usage example
 
 developed under node version 18.17.1\
-See App.js for example
+See App.js for usage example
 
-#
+### `npm i`
+### `npm start`
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
