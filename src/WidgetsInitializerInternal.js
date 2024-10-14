@@ -63,7 +63,7 @@ export class WidgetsInitializerInternal {
     //             Or maybe create separate this.initializedInitializers .set(targetNode, something)
     //             and during initialization check if all parents of targetNode does not
     //             exist in this.initializedInitializers.
-    const nodesToInit = targetNode.querySelectorAll(':scope > [widget], :scope > *:not([widget]) [widget]');
+    const nodesToInit = targetNode.querySelectorAll(':scope [widget]:not(:scope [widget] [widget])'); //:scope > [widget], :scope > *:not([widget]) [widget]');
     const initPromises = Array.from(nodesToInit).map(async widgetNode => {
       const widgetNodeDomPath = getDomPath(widgetNode);
       if (this.initializedPaths[widgetNodeDomPath] === undefined) {
