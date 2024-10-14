@@ -2,14 +2,15 @@ const WidgetClasses = Object.freeze({
   loading: 'widgets-initializer--loading',
   error: 'widgets-initializer--error',
   done: 'widgets-initializer--done',
-})
+});
 
 export default class AWidget extends MyLibrary.BaseWidget {
   widgetsRootNode = undefined;
   titleDiv = undefined;
 
   async init(targetNode, done) {
-    console.log('initializing AWidget...');
+    WidgetsInitializer.addDebugMsg(targetNode, `initializing AWidget...`, MyLibrary.DebugTypes.info);
+
     this.widgetsRootNode = targetNode;
 
     this.changeClassTo(WidgetClasses.loading);

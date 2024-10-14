@@ -1,3 +1,4 @@
+import { DebugTypes } from './utils';
 import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
 
 export class BaseWidget {
@@ -23,7 +24,7 @@ export class BaseWidget {
   }
 
   async init(targetNode, done) {
-    console.log('inside BaseWidget.init()');
+    WidgetsInitializer.addDebugMsg(targetNode, `inside BaseWidget.init()`, DebugTypes.info);
 
     if (targetNode === undefined || targetNode === null) {
       // TODO: implement this.onFail( pass in done here??? );

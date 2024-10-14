@@ -1,3 +1,5 @@
+import { getDomPath, DebugTypes } from "./utils";
+
 export class WidgetsInitializerInternal {
   constructor() {
     if ((typeof window !== 'undefined' ? window : global).WidgetsInitializer !== undefined) {
@@ -18,6 +20,14 @@ export class WidgetsInitializerInternal {
   };
   config = this.defaultOptions;
   initializedWidgets = new WeakMap();
+  /** contains elements like:
+   * {
+   *  domPath: {
+   *    targetNode,
+   *    debugMsgs: []
+   *  }
+   */
+  initializedPaths = {};
 
   /**
    * 
@@ -41,7 +51,10 @@ export class WidgetsInitializerInternal {
 
   async init(targetNode, callback, options = {}) {
     this.config = { ...this.config, ...options };
-    const errors = [];
+    const targetNodeDomPath = getDomPath(targetNode);
+    if (this.initializedPaths[targetNodeDomPath] === undefined) {
+      this.initializedPaths[targetNodeDomPath] = { targetNode, debugMsgs: [] };
+    }
     const isDonePromises = [];
 
     // TODO: fill in this.initializedWidgets with all nodes (also nested ones) synchronously to prevent async init nested widget somewhere else
@@ -51,47 +64,72 @@ export class WidgetsInitializerInternal {
     //             and during initialization check if all parents of targetNode does not
     //             exist in this.initializedInitializers.
     const nodesToInit = targetNode.querySelectorAll(':scope > [widget], :scope > *:not([widget]) [widget]');
-    const initPromises = Array.from(nodesToInit).map(async node => {
-      const widgetPath = node.getAttribute('widget');
+    const initPromises = Array.from(nodesToInit).map(async widgetNode => {
+      const widgetNodeDomPath = getDomPath(widgetNode);
+      if (this.initializedPaths[widgetNodeDomPath] === undefined) {
+        this.initializedPaths[widgetNodeDomPath] = { targetNode: widgetNode, debugMsgs: [] };
+      }
+
+      const widgetPath = widgetNode.getAttribute('widget');
       this.initializedWidgets.set(
-        node,
+        widgetNode,
         widgetPath // TODO: change to relativeSelector
       ); // TODO: consider some lock here, because right now we have to remember that this line have to be before any await in this function!!!
       try {
         const WidgetClass = await this.loadWidgetClass(widgetPath);
         const widgetInstance = new WidgetClass();
-        this.initializedWidgets.set(node, widgetInstance); // TODO: consider to store instances in separate WeakMap or just type (string/object) will indicate initialization state
+        this.initializedWidgets.set(widgetNode, widgetInstance); // TODO: consider to store instances in separate WeakMap or just type (string/object) will indicate initialization state
         isDonePromises.push(widgetInstance.isDonePromise);
         widgetInstance.init(
-          node,
+          widgetNode,
           err => {
             if (err) {
-              errors.push({ node, error: err });
+              this.addDebugMsg(widgetNode, err, DebugTypes.error);
             } else {
-              console.log(`${widgetPath} Initialized.`);
+              this.addDebugMsg(widgetNode, `${widgetPath} Initialized.`, DebugTypes.info);
             }
             widgetInstance.setIsDone(this);
           },
           this.config
-        );
+        ).catch((err) => {
+          this.addDebugMsg(widgetNode, err, DebugTypes.error);
+          widgetInstance.setIsDone(this);
+        });
       } catch (err) {
-        errors.push({ node, error: err });
+        this.addDebugMsg(widgetNode, err, DebugTypes.error);
       }
     });
-    await Promise.all(initPromises); // await here is important to wait for all to add to: this.initializedWidgets
     
     try {
-      console.log(`BEFORE ALL WIDGETS Initialized.`);
+      await Promise.all(initPromises); // await here is important to wait for all to add to: this.initializedWidgets
+    
+      this.addDebugMsg(targetNode, `WAITING FOR ALL WIDGETS (inside: ${targetNodeDomPath}) to finish...`, DebugTypes.info);
       await Promise.all(isDonePromises);
-      console.log(`ALL WIDGETS Initialized.`);
+      this.addDebugMsg(targetNode, `ALL WIDGETS (inside: ${targetNodeDomPath}) finished initialization. (with or without errors!)`, DebugTypes.info);
+
+      const errors = this.initializedPaths[targetNodeDomPath].debugMsgs.filter((dMsg) => dMsg.type === DebugTypes.error);
+
       callback(errors.length ? errors : null);
     } catch (err) {
+      this.addDebugMsg(targetNode, err, DebugTypes.error);
       callback(err);
     }
   }
 
   async destroy(targetNode) {
+    delete this.initializedPaths[getDomPath(targetNode)];
     console.log('WidgetsInitializer.destroy()');
+  }
+
+  addDebugMsg(targetNode, msg, type = DebugTypes.info) {
+    if (!WEBPACK_isProd) {
+      console.log(msg);
+      const targetNodeDomPath = getDomPath(targetNode);
+      this.initializedPaths[targetNodeDomPath].debugMsgs.push({
+        type,
+        msg
+      });
+    }
   }
 }
 

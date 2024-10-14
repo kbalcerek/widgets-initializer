@@ -7,6 +7,16 @@
 </head>
 
 <body>
+  <div class="buttons">
+    <button id="init">Init</button>
+    <button id="destroy">Destroy</button>
+  </div>
+
+  <div class="selectorPathContainer">Selected element: <span id="selectorPathElement"></span></div>
+  <div class="debugContainer" id="debugContainer">
+    
+  </div>
+
   <div id="root">
     <div widget="widgets/a">
       <div class="title">Widget A</div>
@@ -37,6 +47,18 @@
       <div widget="widgets/c">
         <div class="title">Widget C</div>
       </div>
+      <div widget="widgets/b">
+        <div class="title">Widget B</div>
+        <a widget="widgets/a" style="display: block;">
+          <div class="title">Widget A (in &lt;a&gt; tag)</div>
+        </a>
+      </div>
+      <a widget="widgets/a" style="display: block;">
+        <div class="title">Widget A (in &lt;a&gt; tag)</div>
+        <div widget="widgets/c">
+          <div class="title">Widget C</div>
+        </div>
+      </a>
     </div>
     <div class="container">
       <div class="title">Container</div>
@@ -56,11 +78,6 @@
     <a widget="widgets/a">
       <div class="title">Widget A (in &lt;a&gt; tag)</div>
     </a>
-  </div>
-
-  <div class="controls">
-    <button id="init">Init</button>
-    <button id="destroy">Destroy</button>
   </div>
 
   <script src="../../dist/lib.script.js"></script>
@@ -85,6 +102,47 @@
             }); 
         })
        });
+    });
+
+    function addToDebug(errMsg, type = 'info') {
+      const pEl = document.createElement('p');
+      pEl.classList.add('line1');
+      pEl.classList.add(type);
+      pEl.innerText = errMsg;
+      document.getElementById('debugContainer').appendChild(pEl);
+    }
+
+    function startDebugUpdater(widgetNodeDomPath) {
+      clearInterval(window.updateDebugInterval);
+      
+      let oldLength = WidgetsInitializer.initializedPaths[widgetNodeDomPath]?.debugMsgs?.length || 0;
+      window.updateDebugInterval = setInterval(() => {
+        // NOTE: we could also resolve it by adding new option to init(), like 'onNewDebugCallback'
+        //       but because debug is switched off for production in library and it generally will not
+        //       be used by library users, I decided to do it this way (by simple setInterval)
+        const initializedPathItem = WidgetsInitializer.initializedPaths[widgetNodeDomPath];
+        if (initializedPathItem?.debugMsgs?.length > oldLength) {
+          oldLength = initializedPathItem.debugMsgs.length;
+          document.getElementById('debugContainer').innerHTML = '';
+          initializedPathItem.debugMsgs.forEach(dMsg => {
+            addToDebug(dMsg.msg, dMsg.type);
+          });
+        }
+      }, 100);
+    }
+
+    document.getElementById('root').addEventListener('click', (evt) => {
+      document.getElementById('selectorPathElement').innerText = `${MyLibrary.getDomPath(evt.target)}         (HTML: ${evt.target.outerHTML.substring(0, 33)}...)`;
+      document.getElementById('debugContainer').innerHTML = '';
+      const widgetNodeDomPath = MyLibrary.getDomPath(evt.target);
+      startDebugUpdater(widgetNodeDomPath);
+
+      const initializedPathItem = WidgetsInitializer.initializedPaths[widgetNodeDomPath];
+      if (initializedPathItem) {
+        initializedPathItem.debugMsgs.forEach(dMsg => {
+          addToDebug(dMsg.msg, dMsg.type);
+        });
+      }
     });
 
     document.getElementById('destroy').addEventListener('click', () => {

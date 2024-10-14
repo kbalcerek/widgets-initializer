@@ -1,3 +1,17 @@
+.buttons {
+  text-align: center;
+}
+
+.buttons button {
+  cursor: pointer;
+  padding: 6px 16px;
+  color: #24292E;
+  background-color: #FAFBFC;
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  border-radius: 6px;
+  box-shadow: rgba(27, 31, 35, 0.04) 0 1px 0, rgba(255, 255, 255, 0.25) 0 1px 0 inset;
+}
+
 #root {
   display: flex;
   flex-wrap: wrap;
@@ -70,10 +84,6 @@
   border-color: red;
 }
 
-#root *[widget].widgets-initializer--done {
-  /* border-color: red; */
-}
-
 @keyframes animateOutline {
   0% {
     outline-width: 1px;
@@ -97,4 +107,51 @@
     outline-offset: 4px;
     outline-color: rgba(102, 102, 102, 0);
   }
+}
+
+.selectorPathContainer {
+  color: #626262;
+  background-color: #bbb;
+  margin: 15px auto 0px auto;
+  padding: 5px 20px;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
+}
+
+#selectorPathElement {
+  color: #43655a;
+  font-weight: bold;
+}
+
+.debugContainer {
+  background-color: #151515;
+  box-sizing: border-box;
+  margin: 0px auto 15px auto;
+  padding: 20px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  height: 125px;
+  overflow: auto;
+}
+
+.debugContainer p {
+  text-align: left;
+  font-size: 1.25em;
+  font-family: monospace;
+  white-space: normal;
+}
+
+.debugContainer .line1 {
+  padding: 3px 0px;
+  margin: 0px;
+  border-top: 1px solid #777;
+  border-bottom: 1px solid #777;
+}
+
+.debugContainer .line1.info {
+  color: #9CD9F0;
+}
+
+.debugContainer .line1.error {
+  color: #E09690;
 }

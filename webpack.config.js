@@ -1,10 +1,20 @@
 const path = require('path');
+const webpack = require('webpack');
   
 module.exports = (env) => {
-  const serverConfig = {
-    target: 'node',
+  const commonConfig = {
     entry: './src/index.js',
     mode: env.dev ? 'development' : 'production',
+    plugins: [
+      new webpack.DefinePlugin({
+        WEBPACK_isProd: JSON.stringify(!env.dev),
+      })
+    ]
+  };
+
+  const serverConfig = {
+    ...commonConfig,
+    target: 'node',
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: 'lib.node.js',
@@ -16,9 +26,8 @@ module.exports = (env) => {
   };
   
   const clientConfig = {
+    ...commonConfig,
     target: 'web',
-    entry: './src/index.js',
-    mode: env.dev ? 'development' : 'production',
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: 'lib.js',
@@ -30,9 +39,8 @@ module.exports = (env) => {
   };
   
   const scriptConfig = {
+    ...commonConfig,
     target: 'web',
-    entry: './src/index.js',
-    mode: env.dev ? 'development' : 'production',
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: 'lib.script.js',
