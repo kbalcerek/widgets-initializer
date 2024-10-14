@@ -9,7 +9,7 @@ export default class AWidget extends MyLibrary.BaseWidget {
   titleDiv = undefined;
 
   async init(targetNode, done) {
-    WidgetsInitializer.addDebugMsg(targetNode, `initializing AWidget...`, MyLibrary.DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(targetNode, `inside AWidget.init(), initializing...`, MyLibrary.DebugTypes.info);
 
     this.widgetsRootNode = targetNode;
 

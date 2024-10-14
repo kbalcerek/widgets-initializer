@@ -1,6 +1,6 @@
 export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
   async init(targetNode, done) {
-    console.log('initializing WithOtherWidgetMarkupWidget...');
+    WidgetsInitializer.addDebugMsg(targetNode, `inside WithOtherWidgetMarkupWidget.init(), initializing...`, MyLibrary.DebugTypes.info);
 
     targetNode.style.fontSize = '13px';
     const span = document.createElement('span');

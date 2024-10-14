@@ -24,7 +24,7 @@ export class BaseWidget {
   }
 
   async init(targetNode, done) {
-    WidgetsInitializer.addDebugMsg(targetNode, `inside BaseWidget.init()`, DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(targetNode, `inside BaseWidget.init(), initializing...`, DebugTypes.info);
 
     if (targetNode === undefined || targetNode === null) {
       // TODO: implement this.onFail( pass in done here??? );
