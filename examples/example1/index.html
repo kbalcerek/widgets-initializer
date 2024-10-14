@@ -9,33 +9,53 @@
 <body>
   <div id="root">
     <div widget="widgets/a">
-      A
+      <div class="title">Widget A</div>
       <div widget="widgets/b">
-        B
-        <div widget="widgets/c">C</div>
+        <div class="title">Widget B</div>
+        <div widget="widgets/c">
+          <div class="title">Widget C</div>
+        </div>
+      </div>
+    </div>
+    <div widget="widgets/z">
+      <div class="title">Widget Z</div>
+      <div class="container">
+        <div class="title">Container</div>
+        <div widget="widgets/c">
+          <div class="title">Widget C</div>
+        </div>
+      </div>
+    </div>
+    <div widget="widgets/a">
+      <div class="title">Widget A</div>
+      <div widget="widgets/with-other-widget-markup">
+        <div class="title">Widget with-other-widget-markup</div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="title">Container</div>
+      <div widget="widgets/c">
+        <div class="title">Widget C</div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="title">Container</div>
+      <div class="container">
+        <div class="title">Container</div>
+        <div widget="widgets/c">
+          <div class="title">Widget C</div>
+        </div>
       </div>
     </div>
     <div widget="widgets/e">
-      E
-      <div>
-        <div widget="widgets/c">C</div>
-      </div>
+      <div class="title">Widget E</div>
     </div>
-    <div></div>
-    <div>
-      <div widget="widgets/c">C</div>
+    <div class="container">
+      <div class="title">Container</div>
     </div>
-    <div>
-      <div>
-        <div widget="widgets/c">C</div>
-      </div>
-    </div>
-    <div widget="widgets/c">C</div>
-    <div widget="widgets/a">
-      A
-      <div widget="widgets/with-other-widget-markup">with-other-widget-markup</div>
-    </div>
-    <a widget="widgets/d">D</a>
+    <a widget="widgets/a">
+      <div class="title">Widget A (in &lt;a&gt; tag)</div>
+    </a>
   </div>
 
   <div class="controls">

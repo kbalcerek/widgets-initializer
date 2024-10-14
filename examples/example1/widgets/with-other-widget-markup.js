@@ -2,10 +2,16 @@ export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
   async init(targetNode, done) {
     console.log('initializing WithOtherWidgetMarkupWidget...');
 
+    targetNode.style.fontSize = '13px';
     const span = document.createElement('span');
     span.innerHTML = `
-      Some markup, the with widget c is below:
-      <div widget="widgets/c">C injected</div>`;
+      Some markup added in WithOtherWidgetMarkupWidget.init() method<br />
+      this markup is with widget c:
+      <div widget="widgets/c">
+        <div class="title">WidgetC injected in WithOtherWidgetMarkupWidget</div>
+      </div>
+      this text is below widget c<br /><br />
+    `;
     targetNode.appendChild(span);
 
     super.init(targetNode,
@@ -14,10 +20,7 @@ export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
         await MyLibrary.sleep(sleepTime);
 
         const span = document.createElement('span');
-        span.innerHTML = `
-          from WithOtherWidgetMarkupWidget: <B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}
-          
-        `;
+        span.innerHTML = `Hello from WithOtherWidgetMarkupWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
         targetNode.appendChild(span);
 
         console.log(`WithOtherWidgetMarkupWidget almost Initialized. sleepTime: ${sleepTime}`);
