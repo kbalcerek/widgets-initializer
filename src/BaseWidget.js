@@ -1,4 +1,4 @@
-import { DebugTypes } from './utils';
+import { DebugTypes, getDomPath } from './utils';
 import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
 
 export class BaseWidget {
@@ -24,7 +24,7 @@ export class BaseWidget {
   }
 
   async init(targetNode, done) {
-    WidgetsInitializer.addDebugMsg(targetNode, `inside BaseWidget.init(), initializing...`, DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(targetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${getDomPath(targetNode)})`, DebugTypes.info);
 
     if (targetNode === undefined || targetNode === null) {
       // TODO: implement this.onFail( pass in done here??? );
@@ -38,14 +38,9 @@ export class BaseWidget {
       done && done(this.markAsFailedErrors);
       return;
     }
-
-    // init all children
-    WidgetsInitializer.init(
-      targetNode,
-      () => {
-        done && done();
-      },
-    ); 
+    
+    WidgetsInitializer.addDebugMsg(targetNode, `inside BaseWidget.init(), calling done()... (${this.constructor.name}: ${getDomPath(targetNode)})`, DebugTypes.info);
+    done && done();
   }
 
   destroy() {

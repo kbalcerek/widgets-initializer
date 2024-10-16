@@ -5,11 +5,11 @@ module.exports = (env) => {
   const commonConfig = {
     entry: './src/index.js',
     mode: env.dev ? 'development' : 'production',
-    plugins: [
-      new webpack.DefinePlugin({
-        WEBPACK_isProd: JSON.stringify(!env.dev),
-      })
-    ]
+    // plugins: [
+    //   new webpack.DefinePlugin({
+    //     WEBPACK_isProd: JSON.stringify(!env.dev),
+    //   })
+    // ]
   };
 
   const serverConfig = {

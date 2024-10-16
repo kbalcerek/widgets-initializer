@@ -1,6 +1,6 @@
 export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
   async init(targetNode, done) {
-    WidgetsInitializer.addDebugMsg(targetNode, `inside WithOtherWidgetMarkupWidget.init(), initializing...`, MyLibrary.DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(targetNode, `inside WithOtherWidgetMarkupWidget.init(), initializing... (${this.constructor.name}: ${MyLibrary.getDomPath(targetNode)})`, MyLibrary.DebugTypes.info);
 
     targetNode.style.fontSize = '13px';
     const span = document.createElement('span');
@@ -23,8 +23,7 @@ export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
         span.innerHTML = `Hello from WithOtherWidgetMarkupWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
         targetNode.appendChild(span);
 
-        console.log(`WithOtherWidgetMarkupWidget almost Initialized. sleepTime: ${sleepTime}`);
-
+        WidgetsInitializer.addDebugMsg(targetNode, `inside WithOtherWidgetMarkupWidget almost Initialized. sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${MyLibrary.getDomPath(targetNode)})`, MyLibrary.DebugTypes.info);
         done && done();
       }
     );

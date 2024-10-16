@@ -9,7 +9,7 @@ export default class AWidget extends MyLibrary.BaseWidget {
   titleDiv = undefined;
 
   async init(targetNode, done) {
-    WidgetsInitializer.addDebugMsg(targetNode, `inside AWidget.init(), initializing...`, MyLibrary.DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(targetNode, `inside AWidget.init(), initializing... (${this.constructor.name}: ${MyLibrary.getDomPath(targetNode)})`, MyLibrary.DebugTypes.info);
 
     this.widgetsRootNode = targetNode;
 
@@ -32,7 +32,7 @@ export default class AWidget extends MyLibrary.BaseWidget {
           return;
         }
 
-        if (targetNode.tagName.toLowerCase() === 'a') {
+        if (targetNode.tagName.toLowerCase() === 'a') { // yes, this kind of validation should be done earlier, not in done callback, but I just wanted to give some example how to rise error here
           this.onError();
           done && done(`AWidget(${this.widgetPath}): <a> tag is not supported`);
           return;
@@ -46,8 +46,7 @@ export default class AWidget extends MyLibrary.BaseWidget {
         
         this.changeClassTo(WidgetClasses.done);
 
-        console.log(`AWidget almost Initialized. sleepTime: ${sleepTime}`);
-
+        WidgetsInitializer.addDebugMsg(targetNode, `inside AWidget almost Initialized. sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${MyLibrary.getDomPath(targetNode)})`, MyLibrary.DebugTypes.info);
         done && done();
       }
     );

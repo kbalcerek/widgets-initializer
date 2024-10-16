@@ -90,6 +90,7 @@
           console.log('Init successful');
         }
       }, {
+        debug: true,
         resolver: (path) => new Promise((resolve, reject) => {
         let relativePart = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
           import(`${relativePart}/${path}.js`)
@@ -114,35 +115,30 @@
 
     function startDebugUpdater(widgetNodeDomPath) {
       clearInterval(window.updateDebugInterval);
-      
-      let oldLength = WidgetsInitializer.initializedPaths[widgetNodeDomPath]?.debugMsgs?.length || 0;
-      window.updateDebugInterval = setInterval(() => {
-        // NOTE: we could also resolve it by adding new option to init(), like 'onNewDebugCallback'
-        //       but because debug is switched off for production in library and it generally will not
-        //       be used by library users, I decided to do it this way (by simple setInterval)
-        const initializedPathItem = WidgetsInitializer.initializedPaths[widgetNodeDomPath];
-        if (initializedPathItem?.debugMsgs?.length > oldLength) {
-          oldLength = initializedPathItem.debugMsgs.length;
+      let oldLength = 0;
+      const updateFunc = () => {
+        const filteredLog = WidgetsInitializer.debugLog.filter(log => log.domPath.startsWith(widgetNodeDomPath));
+        if (filteredLog.length > oldLength) {
+          oldLength = filteredLog.length;
           document.getElementById('debugContainer').innerHTML = '';
-          initializedPathItem.debugMsgs.forEach(dMsg => {
-            addToDebug(dMsg.msg, dMsg.type);
+          filteredLog.forEach(log => {
+            addToDebug(log.debugMsg, log.type);
           });
         }
-      }, 100);
+      };
+      updateFunc();
+      
+      window.updateDebugInterval = setInterval(updateFunc, 100);
+      // NOTE: we could also resolve it by adding new option to init(), like 'onNewDebugCallback'
+      //       but generally libraries do not come up with this kind of functionality,
+      //       so I decided to do it this way (by simple setInterval)
     }
 
     document.getElementById('root').addEventListener('click', (evt) => {
-      document.getElementById('selectorPathElement').innerText = `${MyLibrary.getDomPath(evt.target)}         (HTML: ${evt.target.outerHTML.substring(0, 33)}...)`;
+      document.getElementById('selectorPathElement').innerText = `${MyLibrary.getDomPath(evt.target)}         (HTML: ${evt.target.outerHTML.substring(0, 33).replaceAll('\n', '')}...)`;
       document.getElementById('debugContainer').innerHTML = '';
       const widgetNodeDomPath = MyLibrary.getDomPath(evt.target);
       startDebugUpdater(widgetNodeDomPath);
-
-      const initializedPathItem = WidgetsInitializer.initializedPaths[widgetNodeDomPath];
-      if (initializedPathItem) {
-        initializedPathItem.debugMsgs.forEach(dMsg => {
-          addToDebug(dMsg.msg, dMsg.type);
-        });
-      }
     });
 
     document.getElementById('destroy').addEventListener('click', () => {
