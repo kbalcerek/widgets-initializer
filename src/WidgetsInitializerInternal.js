@@ -129,7 +129,10 @@ export class WidgetsInitializerInternal {
 
   addDebugMsg(targetNode, msg, type = DebugTypes.info) {
     // if (!WEBPACK_isProd) {
-    if (this.config.debug) {
+    if (
+      this.config.debug ||
+      type !== DebugTypes.info // errors (and other debug messages other then "info", like maybe someday warnings) should be always added to debugLog, because they are later on returned in callback
+    ) {
       if (Array.isArray(msg)) {
         msg.forEach((m) => this.addDebugMsg(targetNode, m.msg, m.type));
         return;
