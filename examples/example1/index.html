@@ -137,12 +137,17 @@
     document.getElementById('root').addEventListener('click', (evt) => {
       document.getElementById('selectorPathElement').innerText = `${MyLibrary.getDomPath(evt.target)}         (HTML: ${evt.target.outerHTML.substring(0, 33).replaceAll('\n', '')}...)`;
       document.getElementById('debugContainer').innerHTML = '';
+      window.selectedElement = evt.target;
       const widgetNodeDomPath = MyLibrary.getDomPath(evt.target);
       startDebugUpdater(widgetNodeDomPath);
     });
 
     document.getElementById('destroy').addEventListener('click', () => {
-      WidgetsInitializer.destroy(document.getElementById('root'));
+      if (window.selectedElement) {
+        WidgetsInitializer.destroy(window.selectedElement);
+      } else {
+        document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Nothing has been selected, so nothing has been destroyed :)</span>`;
+      }
     });
   </script>
 </body>

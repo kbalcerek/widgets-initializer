@@ -1,8 +1,14 @@
-import { DebugTypes } from './utils';
+import { DebugTypes, getFirstLevelWidgetNodes } from './utils';
 import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
 
 export class BaseWidget {
   widgetNode = undefined;
+  /** original widget node, before .init() call, used to restore it in destroy()
+   * NOTE: we keep original one, because .copyNode() does not copy event listeners,
+   *       so we would loose them if we remember the copy!
+   *       TODO: Possible workaround: implement wrapper around addEventListener
+   */
+  widgetNodeOrg = undefined;
   widgetPath = undefined;
   widgetDomPath = undefined;
   isInitialized = false;
@@ -10,7 +16,7 @@ export class BaseWidget {
    * it is resolver of isDonePromise
    */
   setIsDone = undefined;
-  isDonePromise = new Promise(resolve => {
+  isDonePromiseExecutor = (resolve) => {
     this.setIsDone = (caller) => {
       if (caller instanceof WidgetsInitializerInternal) {
         this.isInitialized = true;
@@ -19,21 +25,36 @@ export class BaseWidget {
           throw new Error('Unauthorized access to private method BaseWidget.setIsDone()');
       }
     }
-  });
+  }
+  isDonePromise = new Promise(this.isDonePromiseExecutor); // NOTE: isDonePromiseExecutor if wrapped into property to reuse it to recreate isDonePromise (in .destroy())
   markAsFailedErrors = undefined;
 
   constructor(widgetNode, widgetPath, widgetDomPath) {
-    this.widgetNode = widgetNode;
+    this.widgetNodeOrg = widgetNode
+    this.widgetNode = this.widgetNodeOrg.cloneNode(true);
+    this.widgetNodeOrg.replaceWith(this.widgetNode);
+
+    // replace node under which it is stored in initializedWidgets
+    WidgetsInitializer.initializedWidgets.set(this.widgetNode, WidgetsInitializer.initializedWidgets.get(this.widgetNodeOrg));
+    WidgetsInitializer.initializedWidgets.delete(this.widgetNodeOrg);
+    // TODO: replace in nodesDuringInitialization
+
     this.widgetPath = widgetPath;
     this.widgetDomPath = widgetDomPath;
   }
 
   async init(done) {
+    // TODO: if widget (path) already initialized (started initialization) -> do nothing here!
+    //       IMPORTANT: handle case when this class is extended by some other (ex. AWidget), in this case super.init() may be called after
+    //                  some code execution (part of widget initialization). Should we allow some code before super.init()? And if yes,
+    //                  how to "do nothing" if already something has been done? Maybe .init() should allow some API for pre-init() code execution?
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
     if (this.markAsFailedErrors !== undefined) {
       // TODO: implement this.onFail( pass in done here??? );
-      done && done(this.markAsFailedErrors);
+      done && done(this.markAsFailedErrors)
+      // TODO: should there be: .catch()? done() method may also fail by user
+      ;
       return;
     }
     
@@ -42,6 +63,17 @@ export class BaseWidget {
   }
 
   destroy() {
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.destroy()... BEFORE DESTROY CHILDREN (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+
+    const widgetNodesToDestroy = getFirstLevelWidgetNodes(this.widgetNode);
+    WidgetsInitializer.destroyNodes(widgetNodesToDestroy);
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `ALL CHILDREN DESTROYED (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+
+    // cleanup
+    this.isInitialized = false;
+    this.isDonePromise = new Promise(this.isDonePromiseExecutor);
+    this.markAsFailedErrors = undefined;
+    this.widgetNode.replaceWith(this.widgetNodeOrg);
   }
 
   done(callback) {
@@ -63,7 +95,6 @@ export class BaseWidget {
    */
   fail(errors) {
     this.markAsFailedErrors.push(...errors);
-    this.isInitialized = false;
     // TODO: implement this.onFail( pass in done here??? );
   }
 }

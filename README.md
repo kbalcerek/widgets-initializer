@@ -26,3 +26,10 @@ See details in [/nodejs-with-jsdom/README.md](https://github.com/kbalcerek/widge
 
 It is example of how to use library in FrontEnd environments\
 See details in [/react-app/README.md](https://github.com/kbalcerek/widgets-initializer/tree/main/examples/react-app/README.md)
+
+##
+
+# Event Listeners in [widget] nodes
+
+Library internally uses .cloneNode() on [widget] nodes to remember their original state. That leads to downside that widget nodes after initialization will loose any event listeners attached. They have to be re-applied in widget class in .afterInit() - or some other method: to be implemented.
+For simplicity I didn't handle it right now. As a workaround that could be implemented to fully support event listeners we could implement wrapper around addEventListener() and apply them in BaseWidget class just right after cloning.

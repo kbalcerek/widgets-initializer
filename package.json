@@ -7,6 +7,9 @@
   "files": [
     "/dist"
   ],
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
   "devDependencies": {
     "anywhere": "^1.6.0",
     "webpack": "^5.95.0",

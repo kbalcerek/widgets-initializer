@@ -7,6 +7,10 @@ export const DebugTypes = Object.freeze({
   info: 'info',
 });
 
+export const ErrorTypes = Object.freeze({
+  WidgetDestroyed: 'WidgetDestroyed',
+});
+
 // source: https://stackoverflow.com/a/16742828
 export const getDomPath = (el) => {
   var stack = [];
@@ -34,6 +38,15 @@ export const getDomPath = (el) => {
 
   const path = stack.slice(1); // removes the html element
   return path.join(' > ');
+}
+
+/**
+ * 
+ * @param {HTMLElement} targetNode 
+ * @returns array of HTMLElements that are widget nodes inside targetNode, but only the root ones, it doesn't return nested widgets
+ */
+export const getFirstLevelWidgetNodes = (targetNode) => {
+  return targetNode.querySelectorAll(':scope [widget]:not(:scope [widget] [widget])'); //:scope > [widget], :scope > *:not([widget]) [widget]');;
 }
 
 export default { sleep }
