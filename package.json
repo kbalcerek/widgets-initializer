@@ -18,9 +18,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "example:1": "node .\\node_modules\\anywhere\\bin\\anywhere -u /examples/example1/index.html",
-    "build" : "webpack --config webpack.config.js",
-    "build:dev" : "webpack --env dev --config webpack.config.js",
-    "webpack:watch" : "webpack --env dev --config webpack.config.js --watch"
+    "build": "webpack --config webpack.config.js",
+    "build:dev": "webpack --env dev --config webpack.config.js",
+    "webpack:watch": "webpack --env dev --config webpack.config.js --watch"
   },
   "repository": {
     "type": "git",
