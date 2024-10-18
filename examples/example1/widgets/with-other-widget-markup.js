@@ -1,6 +1,6 @@
 export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
   async init(done) {
-    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside WithOtherWidgetMarkupWidget.init(), initializing... (${this.constructor.name}: ${MyLibrary.getDomPath(this.widgetNode)})`, MyLibrary.DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside WithOtherWidgetMarkupWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
 
     this.widgetNode.style.fontSize = '13px';
     const span = document.createElement('span');
@@ -23,7 +23,7 @@ export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
         span.innerHTML = `Hello from WithOtherWidgetMarkupWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
         this.widgetNode.appendChild(span);
 
-        WidgetsInitializer.addDebugMsg(this.widgetNode, `inside WithOtherWidgetMarkupWidget almost Initialized. sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${MyLibrary.getDomPath(this.widgetNode)})`, MyLibrary.DebugTypes.info);
+        WidgetsInitializer.addDebugMsg(this.widgetNode, `inside WithOtherWidgetMarkupWidget almost Initialized. sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
         done && done();
       }
     );

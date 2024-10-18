@@ -1,9 +1,10 @@
-import { DebugTypes, getDomPath } from './utils';
+import { DebugTypes } from './utils';
 import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
 
 export class BaseWidget {
   widgetNode = undefined;
   widgetPath = undefined;
+  widgetDomPath = undefined;
   isInitialized = false;
   /** method called internally after initialization is done.
    * it is resolver of isDonePromise
@@ -21,13 +22,14 @@ export class BaseWidget {
   });
   markAsFailedErrors = undefined;
 
-  constructor(widgetNode, widgetPath) {
+  constructor(widgetNode, widgetPath, widgetDomPath) {
     this.widgetNode = widgetNode;
     this.widgetPath = widgetPath;
+    this.widgetDomPath = widgetDomPath;
   }
 
   async init(done) {
-    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${getDomPath(this.widgetNode)})`, DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
     if (this.markAsFailedErrors !== undefined) {
       // TODO: implement this.onFail( pass in done here??? );
@@ -35,7 +37,7 @@ export class BaseWidget {
       return;
     }
     
-    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), calling done()... (${this.constructor.name}: ${getDomPath(this.widgetNode)})`, DebugTypes.info);
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
     done && done();
   }
 
