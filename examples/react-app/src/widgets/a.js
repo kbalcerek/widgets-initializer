@@ -1,15 +1,15 @@
 import { BaseWidget, sleep } from 'widgets-initializer';
 
 export default class AWidget extends BaseWidget {
-  async init(targetNode, done) {
+  async init(done) {
     console.log('initializing AWidget...');
-    super.init(targetNode,
+    super.init(
       async () => {
         await sleep(2000);
 
-        const span = targetNode.ownerDocument.createElement('span');
+        const span = this.widgetNode.ownerDocument.createElement('span');
         span.innerHTML = 'Widget A initialized';
-        targetNode.appendChild(span);
+        this.widgetNode.appendChild(span);
 
         console.log('AWidget almost Initialized.');
 

@@ -1,8 +1,8 @@
 import AWidget from './a.js';
 
 export default class CWidget extends AWidget {
-  async init(targetNode, done) {
-    WidgetsInitializer.addDebugMsg(targetNode, `inside CWidget.init(), initializing... (${this.constructor.name}: ${MyLibrary.getDomPath(targetNode)})`, MyLibrary.DebugTypes.info);
-    super.init(targetNode, done);
+  async init(done) {
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside CWidget.init(), initializing... (${this.constructor.name}: ${MyLibrary.getDomPath(this.widgetNode)})`, MyLibrary.DebugTypes.info);
+    super.init(done);
   }
 }

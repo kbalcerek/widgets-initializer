@@ -70,11 +70,10 @@ export class WidgetsInitializerInternal {
       ); // TODO: consider some lock here, because right now we have to remember that this line have to be before any await in this function!!!
       try {
         const WidgetClass = await this.loadWidgetClass(widgetPath);
-        const widgetInstance = new WidgetClass();
+        const widgetInstance = new WidgetClass(widgetNode, widgetPath);
         this.initializedWidgets.set(widgetNode, widgetInstance); // TODO: consider to store instances in separate WeakMap or just type (string/object) will indicate initialization state
         isDonePromises.push(widgetInstance.isDonePromise);
         widgetInstance.init(
-          widgetNode,
           err => {
             if (err) {
               this.addDebugMsg(widgetNode, err, DebugTypes.error);
