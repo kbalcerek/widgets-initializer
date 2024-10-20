@@ -26,13 +26,9 @@ export const getDomPath = (el) => {
         sibCount++;
       }
     }
-    if ( el.hasAttribute('id') && el.id != '' ) {
-      stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
-    } else if ( sibCount > 1 ) {
-      stack.unshift(el.nodeName.toLowerCase() + ':eq(' + sibIndex + ')');
-    } else {
-      stack.unshift(el.nodeName.toLowerCase());
-    }
+    
+    stack.unshift(el.nodeName.toLowerCase() + ':eq(' + sibIndex + ')');
+    
     el = el.parentNode;
   }
 
