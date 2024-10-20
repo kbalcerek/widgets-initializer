@@ -1,5 +1,5 @@
 import { getDomPath, DebugTypes, getFirstLevelWidgetNodes, ErrorTypes } from "./utils";
-import { remove, findIndex } from 'lodash';
+import { remove } from 'lodash';
 
 export class WidgetsInitializerInternal {
   constructor() {
@@ -241,9 +241,9 @@ export class WidgetsInitializerInternal {
     let currentNode = targetNode;
 
     while (currentNode) {
-      const foundIndex = findIndex(this.nodesDuringInitialization, (obj) => obj.targetNode === currentNode);
-      if (foundIndex !== -1) {
-        return this.nodesDuringInitialization[foundIndex];
+      const nodeDI = this.nodesDuringInitialization.find((obj) => obj.targetNode === currentNode);
+      if (nodeDI !== undefined) {
+        return nodeDI;
       }
       currentNode = currentNode.parentNode;
     }
