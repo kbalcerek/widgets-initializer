@@ -123,7 +123,7 @@ export class WidgetsInitializerInternal {
                 widgetNodeFromInstance,
                 (errChildren) => {
                   if (errChildren) {
-                    this.addDebugMsg(widgetNodeFromInstance, `${widgetPath} initialization FAILED, calling setIsDone()...`, DebugTypes.error);
+                    this.addDebugMsg(widgetNodeFromInstance, `${widgetPath} initialization FAILED because children failed, calling setIsDone()...`, DebugTypes.error);
                   } else {
                     this.addDebugMsg(widgetNodeFromInstance, `${widgetPath} FULLY Initialized, calling setIsDone()...`, DebugTypes.info);
                   }
