@@ -176,7 +176,7 @@ export class WidgetsInitializerInternal {
       this.addToErrorsInjected(
         targetNodeDI.errorsInjected,
         ErrorTypes.WidgetDestroyed,
-        { domPath: targetNodeDI.domPath },
+        { domPath: targetNodeDomPath }, // use targetNodeDomPath because it can be different then targetNodeDI.domPath (if targetNode is nested inside initializing path)
       );
     } else {
       // no parents in nodesDuringInitialization -> targetNode is NOT inside already initialized path:
@@ -208,6 +208,14 @@ export class WidgetsInitializerInternal {
         // widgetNode is during initialization -> send WidgetDestroyed error
         // NOTE: widget class may be not loaded yet, we cannot use it here
         this.addDebugMsg(widgetNode, `WidgetsInitializer.destroyNodes(): widgetNode is during initialization -> send WidgetDestroyed error (${widgetNodeDomPath})`, DebugTypes.info);
+        if (
+          widgetNodeDI.domPath !== widgetNodeDomPath ||
+          widgetNodeDI.targetNode !== widgetNode
+        ) {
+          this.addDebugMsg(widgetNode, `WidgetsInitializer.destroyNodes(): unexpected error, widgetNodeDI.domPath !== widgetNodeDomPath (${widgetNodeDomPath})`, DebugTypes.error);
+          // widgetNodeDI.targetNode here should be the widgetNode because this method
+          // "Can be called only after making sure nodes are not inside other already initializing nodes"
+        }
         this.addToErrorsInjected(
           widgetNodeDI.errorsInjected,
           ErrorTypes.WidgetDestroyed,
