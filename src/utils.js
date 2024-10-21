@@ -48,13 +48,14 @@ export const getDomPath = (el) => {
 /**
  * 
  * @param {HTMLElement} targetNode 
+ * @param {string} widgetAttributeName name of the attribute that indicates widget nodes
  * @returns array of HTMLElements that are widget nodes inside targetNode, but only the root ones, it doesn't return nested widgets
  */
-export const getFirstLevelWidgetNodes = (targetNode) => {
+export const getFirstLevelWidgetNodes = (targetNode, widgetAttributeName) => {
   const rootWidgets = [];
 
   function traverse(node) {
-    if (node.hasAttribute('widget')) {
+    if (node.hasAttribute(widgetAttributeName)) {
       rootWidgets.push(node);
       return;
     }

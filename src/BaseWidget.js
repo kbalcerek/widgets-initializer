@@ -2,6 +2,8 @@ import { DebugTypes, getFirstLevelWidgetNodes } from './utils';
 import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
 
 export class BaseWidget {
+  /** options passed in from WidgetsInitializer */
+  config = undefined;
   widgetNode = undefined;
   /** original widget node, before .init() call, used to restore it in destroy()
    * NOTE: we keep original one, because .copyNode() does not copy event listeners,
@@ -29,7 +31,8 @@ export class BaseWidget {
   isDonePromise = new Promise(this.isDonePromiseExecutor); // NOTE: isDonePromiseExecutor if wrapped into property to reuse it to recreate isDonePromise (in .destroy())
   markAsFailedErrors = undefined;
 
-  constructor(widgetNode, widgetPath, widgetDomPath) {
+  constructor(widgetNode, widgetPath, widgetDomPath, config) {
+    this.config = config;
     this.widgetNodeOrg = widgetNode
     this.widgetNode = this.widgetNodeOrg.cloneNode(true);
     this.widgetNodeOrg.replaceWith(this.widgetNode);
@@ -73,7 +76,7 @@ export class BaseWidget {
   destroy() {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.destroy()... BEFORE DESTROY CHILDREN (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
-    const widgetNodesToDestroy = getFirstLevelWidgetNodes(this.widgetNode);
+    const widgetNodesToDestroy = getFirstLevelWidgetNodes(this.widgetNode, this.config.widgetAttributeName);
     WidgetsInitializer.destroyNodes(widgetNodesToDestroy);
     WidgetsInitializer.addDebugMsg(this.widgetNode, `ALL CHILDREN DESTROYED (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 

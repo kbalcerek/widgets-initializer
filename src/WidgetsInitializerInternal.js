@@ -17,6 +17,8 @@ export class WidgetsInitializerInternal {
      * ```
      */
     resolver: undefined,
+    /** name of the attribute that indicates widget nodes */
+    widgetAttributeName: 'widget',
     debug: false,
   };
   config = this.defaultOptions;
@@ -108,10 +110,10 @@ export class WidgetsInitializerInternal {
     //             Or maybe create separate this.initializedInitializers .set(targetNode, something)
     //             and during initialization check if all parents of targetNode does not
     //             exist in this.initializedInitializers.
-    const nodesToInit = getFirstLevelWidgetNodes(targetNode); // TODO: targetNode can be a widget itself, if it is this line should look like: const nodesToInit = [targetNode]; <- test it
+    const nodesToInit = getFirstLevelWidgetNodes(targetNode, this.config.widgetAttributeName); // TODO: targetNode can be a widget itself, if it is this line should look like: const nodesToInit = [targetNode]; <- test it
     const initPromises = Array.from(nodesToInit).map(async widgetNode => {
       let widgetNodeFromInstance = undefined;
-      const widgetPath = widgetNode.getAttribute('widget');
+      const widgetPath = widgetNode.getAttribute(this.config.widgetAttributeName);
       this.initializedWidgets.set( // TODO: check if it isn't already initializing/initialized! if exist in this array then: continue
         widgetNode,
         widgetPath // TODO: change to relativeSelector
@@ -123,7 +125,7 @@ export class WidgetsInitializerInternal {
       //       WidgetsInitializer.init();
       try {
         const WidgetClass = await this.loadWidgetClass(widgetPath);
-        const widgetInstance = new WidgetClass(widgetNode, widgetPath, getDomPath(widgetNode));
+        const widgetInstance = new WidgetClass(widgetNode, widgetPath, getDomPath(widgetNode), this.config);
         widgetNodeFromInstance = widgetInstance.widgetNode;
         this.initializedWidgets.set(widgetNodeFromInstance, widgetInstance); // TODO: consider to store instances in separate WeakMap or just type (string/object) will indicate initialization state
         isDonePromises.push(widgetInstance.isDonePromise);
@@ -221,9 +223,9 @@ export class WidgetsInitializerInternal {
     } else {
       // no parents in nodesDuringInitialization -> targetNode is NOT inside already initialized path:
       this.addDebugMsg(targetNode, `WidgetsInitializer.destroy(): no parents in nodesDuringInitialization -> targetNode is NOT inside already initialized path (${targetNodeDomPath})`, DebugTypes.info);
-      const widgetAttribute = targetNode.getAttribute('widget')
+      const widgetAttribute = targetNode.getAttribute(this.config.widgetAttributeName)
       const widgetNodesToDestroy = widgetAttribute === null
-        ? getFirstLevelWidgetNodes(targetNode) // not a [widget] node
+        ? getFirstLevelWidgetNodes(targetNode, this.config.widgetAttributeName) // not a [widget] node
         : [targetNode];
       this.destroyNodes(widgetNodesToDestroy);
     }
