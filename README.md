@@ -7,6 +7,7 @@ Until now it has been tested/developed only under Windows environment.
 
 1. `npm i`
 2. To build \dist folder: `npm run build:dev`
+3. `npm run test`
 
 ## There are 3 examples attached in 'examples' folder
 
