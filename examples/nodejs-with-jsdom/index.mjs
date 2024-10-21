@@ -4,6 +4,7 @@ import { WidgetsInitializer } from 'widgets-initializer';
 const { JSDOM } = jsdom;
 
 JSDOM.fromFile('index.html').then((dom) => {
+  WidgetsInitializer.debug = true;
   WidgetsInitializer.init(dom.window.document.getElementById('root'), (errors) => {
     if (errors) {
       console.log('Init completed with errors', errors);

@@ -82,6 +82,7 @@
   <script>
     document.getElementById('init').addEventListener('click', () => {
       if (window.selectedElement) {
+        WidgetsInitializer.debug = true;
         WidgetsInitializer.init(window.selectedElement, (errors) => {
           if (errors) {
             console.log('Init completed with errors', errors);
@@ -89,7 +90,6 @@
             console.log('Init successful');
           }
         }, {
-          debug: true,
           resolver: (path) => new Promise((resolve, reject) => {
           let relativePart = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
             import(`${relativePart}/${path}.js`)

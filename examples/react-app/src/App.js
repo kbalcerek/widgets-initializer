@@ -7,6 +7,7 @@ import { WidgetsInitializer } from 'widgets-initializer';
 function App() {
   useEffect(() => {
     document.getElementById('init')?.addEventListener('click', async () => {
+      WidgetsInitializer.debug = true;
       WidgetsInitializer.init(document.getElementById('root'), (errors) => {
         if (errors) {
           console.log('Init completed with errors', errors);

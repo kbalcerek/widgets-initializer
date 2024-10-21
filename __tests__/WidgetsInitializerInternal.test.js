@@ -1,5 +1,9 @@
 import { WidgetsInitializer } from '../src/index';
 
+beforeAll(() => {
+  WidgetsInitializer.debug = true;
+});
+
 beforeEach(() => {
   document.body.innerHTML = `
     <div id="root">
@@ -30,7 +34,6 @@ test('widget A initialized', async () => {
   WidgetsInitializer.init(document.getElementById('root'), (errors) => {
     resolvePromise();
   }, {
-    debug: true,
     resolver: (path) => new Promise((resolve, reject) => {
       import(`./${path}.js`)
         .then((module) => {
@@ -62,7 +65,6 @@ test('widget A initialized', async () => {
 //     returnedErrors = errors;
 //     resolvePromise();
 //   }, {
-//     debug: true,
 //     resolver: (path) => new Promise((resolve, reject) => {
 //       import(`./${path}.js`)
 //         .then((module) => {
