@@ -49,9 +49,15 @@ export const getDomPath = (el) => {
  * 
  * @param {HTMLElement} targetNode 
  * @param {string} widgetAttributeName name of the attribute that indicates widget nodes
- * @returns array of HTMLElements that are widget nodes inside targetNode, but only the root ones, it doesn't return nested widgets
+ * @param {boolean} skipTargetNode [optional] set to true to search in parents only
+ * @returns array of HTMLElements that are widget nodes inside targetNode, but only the root ones, it doesn't return nested widgets.
+ *          If targetNode is widget note, it will be returned as only element of the array (if skipTargetNode === false).
  */
-export const getFirstLevelWidgetNodes = (targetNode, widgetAttributeName) => {
+export const getFirstLevelWidgetNodes = (targetNode, widgetAttributeName, skipTargetNode = false) => {
+  if (targetNode.hasAttribute(widgetAttributeName) && skipTargetNode === false) {
+    return [targetNode];
+  }
+
   const rootWidgets = [];
 
   function traverse(node) {

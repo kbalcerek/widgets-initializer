@@ -76,7 +76,7 @@ export class BaseWidget {
   destroy() {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.destroy()... BEFORE DESTROY CHILDREN (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
-    const widgetNodesToDestroy = getFirstLevelWidgetNodes(this.widgetNode, this.config.widgetAttributeName);
+    const widgetNodesToDestroy = getFirstLevelWidgetNodes(this.widgetNode, this.config.widgetAttributeName, true);
     WidgetsInitializer.destroyNodes(widgetNodesToDestroy);
     WidgetsInitializer.addDebugMsg(this.widgetNode, `ALL CHILDREN DESTROYED (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 

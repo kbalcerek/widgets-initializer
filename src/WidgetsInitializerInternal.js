@@ -19,6 +19,8 @@ export class WidgetsInitializerInternal {
     resolver: undefined,
     /** name of the attribute that indicates widget nodes */
     widgetAttributeName: 'widget',
+    /** if set to true targetNode won't be initialized if it is a widget (initialize only children) */
+    skipTargetNode: false,
     debug: false,
   };
   config = this.defaultOptions;
@@ -110,7 +112,7 @@ export class WidgetsInitializerInternal {
     //             Or maybe create separate this.initializedInitializers .set(targetNode, something)
     //             and during initialization check if all parents of targetNode does not
     //             exist in this.initializedInitializers.
-    const nodesToInit = getFirstLevelWidgetNodes(targetNode, this.config.widgetAttributeName); // TODO: targetNode can be a widget itself, if it is this line should look like: const nodesToInit = [targetNode]; <- test it
+    const nodesToInit = getFirstLevelWidgetNodes(targetNode, this.config.widgetAttributeName, this.config.skipTargetNode);
     const initPromises = Array.from(nodesToInit).map(async widgetNode => {
       let widgetNodeFromInstance = undefined;
       const widgetPath = widgetNode.getAttribute(this.config.widgetAttributeName);
@@ -146,7 +148,10 @@ export class WidgetsInitializerInternal {
                   }
                   widgetInstance.setIsDone(this);
                 },
-                this.config,
+                {
+                  ...this.config,
+                  skipTargetNode: true,
+                },
                 false
               ).catch((err) => {
                 this.addDebugMsg(widgetNodeFromInstance, err, DebugTypes.error);
@@ -223,10 +228,7 @@ export class WidgetsInitializerInternal {
     } else {
       // no parents in nodesDuringInitialization -> targetNode is NOT inside already initialized path:
       this.addDebugMsg(targetNode, `WidgetsInitializer.destroy(): no parents in nodesDuringInitialization -> targetNode is NOT inside already initialized path (${targetNodeDomPath})`, DebugTypes.info);
-      const widgetAttribute = targetNode.getAttribute(this.config.widgetAttributeName)
-      const widgetNodesToDestroy = widgetAttribute === null
-        ? getFirstLevelWidgetNodes(targetNode, this.config.widgetAttributeName) // not a [widget] node
-        : [targetNode];
+      const widgetNodesToDestroy =  getFirstLevelWidgetNodes(targetNode, this.config.widgetAttributeName);
       this.destroyNodes(widgetNodesToDestroy);
     }
 
