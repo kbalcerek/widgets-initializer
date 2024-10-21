@@ -11,6 +11,8 @@ export const ErrorTypes = Object.freeze({
   WidgetDestroyed: 'WidgetDestroyed',
 });
 
+export const PATH_SEPARATOR = ' > ';
+
 // source: https://stackoverflow.com/a/16742828
 export const getDomPath = (el) => {
   var stack = [];
@@ -27,13 +29,20 @@ export const getDomPath = (el) => {
       }
     }
     
-    stack.unshift(el.nodeName.toLowerCase() + ':eq(' + sibIndex + ')');
+    stack.unshift(
+      el.nodeName.toLowerCase() + 
+      (
+        el.nodeName.toLowerCase() !== 'body' 
+          ? ':nth-child(' + (sibIndex+1) + ')'
+          : '' // don't add nth-child for body because we use paths in querySelectorAll() and it doesn't work when body:nth-child()
+      )
+    );
     
     el = el.parentNode;
   }
 
   const path = stack.slice(1); // removes the html element
-  return path.join(' > ');
+  return path.join(PATH_SEPARATOR);
 }
 
 /**

@@ -1,4 +1,4 @@
-import { getDomPath, DebugTypes, getFirstLevelWidgetNodes, ErrorTypes } from "./utils";
+import { getDomPath, DebugTypes, getFirstLevelWidgetNodes, ErrorTypes, PATH_SEPARATOR } from "./utils";
 import { remove } from 'lodash';
 
 export class WidgetsInitializerInternal {
@@ -21,7 +21,7 @@ export class WidgetsInitializerInternal {
   };
   config = this.defaultOptions;
   /** Contains only root nodes (the targetNode passed to WidgetsInitializer.init())
-   * to mark which nodes are during initialization.
+   * to mark which nodes are during initialization. Only the top level, not nested ones.
    * 
    * Elements are removed after this node has finished its initialization (with or without errors).
    * 
@@ -81,15 +81,25 @@ export class WidgetsInitializerInternal {
     }
   }
 
-  async init(targetNode, callback, options = {}) { // TODO: options here - make them configurable per instance (.init() call) because right now 2nd call will overwrite first one and will be common for all
+  /**
+   * 
+   * @param {*} targetNode 
+   * @param {*} callback 
+   * @param {*} options 
+   * @param {boolean} addToNodesDI used internally with false to avoid adding nested paths to this.nodesDuringInitialization
+   */
+  async init(targetNode, callback, options = {}, addToNodesDI = true) { // TODO: options here - make them configurable per instance (.init() call) because right now 2nd call will overwrite first one and will be common for all
     // TODO: cleanup debugLog for this targetNodeDomPath
+    // TODO: check if targetNode isn't already initializing! (also including parents if they are not initializing)
     this.config = { ...this.config, ...options };
     const targetNodeDomPath = getDomPath(targetNode);
-    this.nodesDuringInitialization.push({
-      targetNode,
-      domPath: targetNodeDomPath,
-      errorsInjected: [],
-    });
+    if (addToNodesDI) {
+      this.nodesDuringInitialization.push({
+        targetNode,
+        domPath: targetNodeDomPath,
+        errorsInjected: {},
+      });
+    }
     const isDonePromises = [];
 
     // TODO: fill in this.initializedWidgets with all nodes (also nested ones) synchronously to prevent async init nested widget somewhere else
@@ -102,10 +112,15 @@ export class WidgetsInitializerInternal {
     const initPromises = Array.from(nodesToInit).map(async widgetNode => {
       let widgetNodeFromInstance = undefined;
       const widgetPath = widgetNode.getAttribute('widget');
-      this.initializedWidgets.set(
+      this.initializedWidgets.set( // TODO: check if it isn't already initializing/initialized! if exist in this array then: continue
         widgetNode,
         widgetPath // TODO: change to relativeSelector
-      ); // TODO: consider some lock here, because right now we have to remember that this line have to be before any await in this function!!!
+      ); // no lock here is required, because right now we have to remember that this line have to be before any await in this function!!!
+      // TODO: create test to test in case somebody gives await in the future before above line,
+      //       because in this case this.initializedWidgets cannot be guaranteed to be filled in properly if for
+      //       example two nested paths are started with .init() This should be enough in test:
+      //       WidgetsInitializer.init();
+      //       WidgetsInitializer.init();
       try {
         const WidgetClass = await this.loadWidgetClass(widgetPath);
         const widgetInstance = new WidgetClass(widgetNode, widgetPath, getDomPath(widgetNode));
@@ -129,6 +144,8 @@ export class WidgetsInitializerInternal {
                   }
                   widgetInstance.setIsDone(this);
                 },
+                this.config,
+                false
               ).catch((err) => {
                 this.addDebugMsg(widgetNodeFromInstance, err, DebugTypes.error);
                 widgetInstance.setIsDone(this);
@@ -144,19 +161,42 @@ export class WidgetsInitializerInternal {
         this.addDebugMsg(widgetNodeFromInstance ?? widgetNode, err, DebugTypes.error);
       }
     });
-    
+    // TODO: targetNode may be outdated here because of replaceWith in BaseWidget.constructor
     try {
       await Promise.all(initPromises); // await here is important to wait for all to add to: this.initializedWidgets
     
-      this.addDebugMsg(targetNode, `WAITING FOR ALL WIDGETS (inside ${this.initializedWidgets.get(targetNode)?.constructor.name}: ${targetNodeDomPath}) to finish...`, DebugTypes.info);
+      this.addDebugMsg(targetNode, `WAITING FOR ALL WIDGETS (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath}) to finish...`, DebugTypes.info);
       await Promise.all(isDonePromises);
-      this.addDebugMsg(targetNode, `ALL WIDGETS (inside ${this.initializedWidgets.get(targetNode)?.constructor.name}: ${targetNodeDomPath}) finished initialization. (with or without errors!)`, DebugTypes.info);
+      this.addDebugMsg(targetNode, `ALL WIDGETS (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath}) finished initialization. (with or without errors!), cleanup...`, DebugTypes.info);
 
       const errors = this.debugLog.filter(log => log.domPath.startsWith(targetNodeDomPath) && log.type === DebugTypes.error);
 
-      // cleanup
-      remove(this.nodesDuringInitialization, (obj) => obj.targetNode === targetNode);
-      // TODO: if (WidgetDestroyed) -> this.destroy() (or some other way to do the destroy for this tree)
+      // cleanup (handle errorsInjected)
+      const parentDI = this.isNodeDuringInitialization(targetNode.parentNode);
+      if (parentDI !== undefined) {
+        // some upper node is still during initialization - do nothing, it will do cleanup later on
+      } else {
+        // targetNode is finalizing it's initialization
+        const targetNodeDI = this.nodesDuringInitialization.find((obj) => obj.targetNode === targetNode);
+        let nodesToDestroy = [];
+        if (targetNodeDI.errorsInjected[ErrorTypes.WidgetDestroyed]) {
+          nodesToDestroy = this.findWidgetDestroyedErrorsInjectedRootPathsOnly(targetNodeDI.errorsInjected[ErrorTypes.WidgetDestroyed])
+            .map((wdErr) => Array.from(targetNode.ownerDocument.querySelectorAll(wdErr.domPath))) // select nodes from DOM basing on domPath
+            .flat();
+
+          delete targetNodeDI.errorsInjected[ErrorTypes.WidgetDestroyed];
+        }
+
+        // handle other errors here if any in the future
+
+        if (Object.keys(targetNodeDI.errorsInjected).length > 0) {
+          this.addDebugMsg(targetNode, `Not all errorsInjected handled: ${Object.keys(targetNodeDI.errorsInjected).join(', ')} (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath})`, DebugTypes.error);
+        }
+        
+        remove(this.nodesDuringInitialization, (obj) => obj.targetNode === targetNode);
+        
+        nodesToDestroy.forEach(nodeToDestroy => this.destroy(nodeToDestroy)); // yes, in here, it have to be called after remove(this.nodesDuringInitialization...
+      }
 
       callback(errors.length ? errors : null);
     } catch (err) {
@@ -258,6 +298,24 @@ export class WidgetsInitializerInternal {
 
     return undefined;
   }
+  
+  /**
+   * 
+   * @param {{ domPath: string }} widgetDestroyedErrorsInjected 
+   * @returns filters out only root paths (domPath)
+   */
+  findWidgetDestroyedErrorsInjectedRootPathsOnly(widgetDestroyedErrorsInjected) {
+    let result = [...widgetDestroyedErrorsInjected];
+
+    // TODO: it probably can be written in more optimal way, but let's leave it right now as is
+    widgetDestroyedErrorsInjected.forEach(widgetDestroyedError => {
+      result = result.filter(resultError =>
+        !resultError.domPath.startsWith(widgetDestroyedError.domPath + PATH_SEPARATOR) // all that don't start with this + separator
+      );
+    });
+
+    return result;
+}
 
   addDebugMsg(targetNodeOrPath, msg, type = DebugTypes.info) {
     // if (!WEBPACK_isProd) {
@@ -282,7 +340,7 @@ export class WidgetsInitializerInternal {
   }
 
   addToErrorsInjected(errorsInjected, errorType, obj) {
-    if (errorsInjected[errorType]) {
+    if (errorsInjected[errorType] === undefined) {
       errorsInjected[errorType] = [];
     }
     errorsInjected[errorType].push(obj);
