@@ -51,7 +51,24 @@ export const getDomPath = (el) => {
  * @returns array of HTMLElements that are widget nodes inside targetNode, but only the root ones, it doesn't return nested widgets
  */
 export const getFirstLevelWidgetNodes = (targetNode) => {
-  return targetNode.querySelectorAll(':scope [widget]:not(:scope [widget] [widget])'); //:scope > [widget], :scope > *:not([widget]) [widget]');;
+  const rootWidgets = [];
+
+  function traverse(node) {
+    if (node.hasAttribute('widget')) {
+      rootWidgets.push(node);
+      return;
+    }
+
+    for (let child of node.children) {
+      traverse(child);
+    }
+  }
+
+  for (let child of targetNode.children) {
+    traverse(child);
+  }
+
+  return rootWidgets;
 }
 
 export default { sleep }

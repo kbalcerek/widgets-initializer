@@ -17,9 +17,6 @@ beforeEach(() => {
       </div>
     </div>
   `;
-
-  // TODO: mock getFirstLevelWidgetNodes() because:
-  // https://github.com/jsdom/jsdom/issues/3067
 });
 
 test('widget A initialized', async () => {
@@ -40,7 +37,6 @@ test('widget A initialized', async () => {
           resolve(module);
         })
         .catch((error) => {
-          console.error(`WidgetsInitializerInternal.test.js: Error loading ${path}: ${error}`);
           reject(error);
         }); 
     })
