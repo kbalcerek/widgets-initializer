@@ -6,8 +6,9 @@ Until now it has been tested/developed only under Windows environment.
 ## Available Scripts
 
 1. `npm i`
-2. To build \dist folder: `npm run build:dev`
-3. `npm run test`
+2. `npm run init-project` - makes a copy of hacked anywhere file that supports extra flag -u, required to run `npm run example:1`
+3. `npm run build:dev`
+4. To run tests: `npm run test`
 
 ## There are 3 examples attached in 'examples' folder
 
