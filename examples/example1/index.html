@@ -81,26 +81,30 @@
   <script src="../../dist/lib.script.js"></script>
   <script>
     document.getElementById('init').addEventListener('click', () => {
-      WidgetsInitializer.init(document.getElementById('root'), (errors) => {
-        if (errors) {
-          console.log('Init completed with errors', errors);
-        } else {
-          console.log('Init successful');
-        }
-      }, {
-        debug: true,
-        resolver: (path) => new Promise((resolve, reject) => {
-        let relativePart = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-          import(`${relativePart}/${path}.js`)
-            .then((module) => {
-              resolve(module);
-            })
-            .catch((error) => {
-              console.error(`App.js: Error loading ${path}: ${error}`);
-              reject(error);
-            }); 
-        })
-       });
+      if (window.selectedElement) {
+        WidgetsInitializer.init(window.selectedElement, (errors) => {
+          if (errors) {
+            console.log('Init completed with errors', errors);
+          } else {
+            console.log('Init successful');
+          }
+        }, {
+          debug: true,
+          resolver: (path) => new Promise((resolve, reject) => {
+          let relativePart = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+            import(`${relativePart}/${path}.js`)
+              .then((module) => {
+                resolve(module);
+              })
+              .catch((error) => {
+                console.error(`App.js: Error loading ${path}: ${error}`);
+                reject(error);
+              }); 
+          })
+        });
+      } else {
+        document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Nothing has been selected, select (click) node you want to initialize</span>`;
+      }
     });
 
     function addToDebug(errMsg, type = 'info') {
