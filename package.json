@@ -1,7 +1,7 @@
 {
   "name": "widgets-initializer",
   "description": "Initialize widgets in DOM recursively",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "browser": "dist/lib.js",
   "main": "dist/lib.node.js",
   "files": [
