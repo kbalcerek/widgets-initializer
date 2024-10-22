@@ -96,11 +96,16 @@ export class WidgetsInitializerInternal {
   async init(targetNode, callback, options = {}, addToNodesDI = true) {
     // TODO: cleanup debugLog for this targetNodeDomPath
     // TODO: check if targetNode isn't already initializing! (also including parents if they are not initializing)
-    const configOptions = { ...this.defaultOptions, ...options };
-    const targetNodeDomPath = getDomPath(targetNode);
+    const configOptions = {
+      ...this.defaultOptions,
+      ...{wasTargetNodeTheWidget: false}, // internally used default
+      ...options,
+    };
+    let targetNodeFromInstance = targetNode; // when the targetNode is widget node it will be replaced by clone, this property will hold reference to new, updated node
+    const targetNodeDomPath = getDomPath(targetNodeFromInstance);
     if (addToNodesDI) {
       this.nodesDuringInitialization.push({
-        targetNode,
+        targetNode: targetNodeFromInstance,
         domPath: targetNodeDomPath,
         errorsInjected: {},
       });
@@ -113,7 +118,7 @@ export class WidgetsInitializerInternal {
     //             Or maybe create separate this.initializedInitializers .set(targetNode, something)
     //             and during initialization check if all parents of targetNode does not
     //             exist in this.initializedInitializers.
-    const nodesToInit = getFirstLevelWidgetNodes(targetNode, configOptions.widgetAttributeName, configOptions.skipTargetNode);
+    const nodesToInit = getFirstLevelWidgetNodes(targetNodeFromInstance, configOptions.widgetAttributeName, configOptions.skipTargetNode);
     const initPromises = Array.from(nodesToInit).map(async widgetNode => {
       let widgetNodeFromInstance = undefined;
       const widgetPath = widgetNode.getAttribute(configOptions.widgetAttributeName);
@@ -130,6 +135,15 @@ export class WidgetsInitializerInternal {
         const WidgetClass = await this.loadWidgetClass(widgetPath, configOptions);
         const widgetInstance = new WidgetClass(widgetNode, widgetPath, getDomPath(widgetNode));
         widgetNodeFromInstance = widgetInstance.widgetNode;
+        let wasTargetNodeTheWidget = false;
+        if (targetNode === widgetNode) {
+          // the targetNode is the widget, so it has been replaced
+          wasTargetNodeTheWidget = true;
+          targetNodeFromInstance = widgetNodeFromInstance;
+          this.nodesDuringInitialization.find((obj) => 
+            obj.targetNode === targetNode
+          ).targetNode = targetNodeFromInstance;
+        }
         this.initializedWidgets.set(widgetNodeFromInstance, widgetInstance); // TODO: consider to store instances in separate WeakMap or just type (string/object) will indicate initialization state
         isDonePromises.push(widgetInstance.isDonePromise);
         widgetInstance.init(
@@ -152,6 +166,7 @@ export class WidgetsInitializerInternal {
                 {
                   ...configOptions,
                   skipTargetNode: true,
+                  wasTargetNodeTheWidget,
                 },
                 false
               ).catch((err) => {
@@ -168,27 +183,29 @@ export class WidgetsInitializerInternal {
         this.addDebugMsg(widgetNodeFromInstance ?? widgetNode, err, DebugTypes.error);
       }
     });
-    // TODO: targetNode may be outdated here because of replaceWith in BaseWidget.constructor
+    
     try {
       await Promise.all(initPromises); // await here is important to wait for all to add to: this.initializedWidgets
     
-      this.addDebugMsg(targetNode, `WAITING FOR ALL WIDGETS (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath}) to finish...`, DebugTypes.info);
+      this.addDebugMsg(targetNodeFromInstance, `WAITING FOR ALL WIDGETS (inside ${this.initializedWidgets.get(targetNodeFromInstance)?.constructor.name || ''}: ${targetNodeDomPath}) to finish...`, DebugTypes.info);
       await Promise.all(isDonePromises);
-      this.addDebugMsg(targetNode, `ALL WIDGETS (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath}) finished initialization. (with or without errors!), cleanup...`, DebugTypes.info);
+      this.addDebugMsg(targetNodeFromInstance, `ALL WIDGETS (inside ${this.initializedWidgets.get(targetNodeFromInstance)?.constructor.name || ''}: ${targetNodeDomPath}) finished initialization. (with or without errors!), cleanup...`, DebugTypes.info);
 
       const errors = this.debugLog.filter(log => log.domPath.startsWith(targetNodeDomPath) && log.type === DebugTypes.error);
 
       // cleanup (handle errorsInjected)
-      const parentDI = this.isNodeDuringInitialization(targetNode.parentNode);
+      const parentDI = this.isNodeDuringInitialization(targetNodeFromInstance.parentNode);
       if (parentDI !== undefined) {
-        // some upper node is still during initialization - do nothing, it will do cleanup later on
+        // some upper node is still during initialization - do nothing, don't cleanup, it will do cleanup later on
+      } else if (configOptions.wasTargetNodeTheWidget) {
+        // this .init() is called recursively - do nothing, don't cleanup, it will do cleanup later on (by .init() that called this .init())
       } else {
         // targetNode is finalizing it's initialization
-        const targetNodeDI = this.nodesDuringInitialization.find((obj) => obj.targetNode === targetNode);
+        const targetNodeDI = this.nodesDuringInitialization.find((obj) => obj.targetNode === targetNodeFromInstance);
         let nodesToDestroy = [];
         if (targetNodeDI.errorsInjected[ErrorTypes.WidgetDestroyed]) {
           nodesToDestroy = this.findWidgetDestroyedErrorsInjectedRootPathsOnly(targetNodeDI.errorsInjected[ErrorTypes.WidgetDestroyed])
-            .map((wdErr) => Array.from(targetNode.ownerDocument.querySelectorAll(wdErr.domPath))) // select nodes from DOM basing on domPath
+            .map((wdErr) => Array.from(targetNodeFromInstance.ownerDocument.querySelectorAll(wdErr.domPath))) // select nodes from DOM basing on domPath
             .flat();
 
           delete targetNodeDI.errorsInjected[ErrorTypes.WidgetDestroyed];
@@ -197,17 +214,17 @@ export class WidgetsInitializerInternal {
         // handle other errors here if any in the future
 
         if (Object.keys(targetNodeDI.errorsInjected).length > 0) {
-          this.addDebugMsg(targetNode, `Not all errorsInjected handled: ${Object.keys(targetNodeDI.errorsInjected).join(', ')} (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath})`, DebugTypes.error);
+          this.addDebugMsg(targetNodeFromInstance, `Not all errorsInjected handled: ${Object.keys(targetNodeDI.errorsInjected).join(', ')} (inside ${this.initializedWidgets.get(targetNodeFromInstance)?.constructor.name || ''}: ${targetNodeDomPath})`, DebugTypes.error);
         }
         
-        remove(this.nodesDuringInitialization, (obj) => obj.targetNode === targetNode);
+        remove(this.nodesDuringInitialization, (obj) => obj.targetNode === targetNodeFromInstance);
         
         nodesToDestroy.forEach(nodeToDestroy => this.destroy(nodeToDestroy)); // yes, in here, it have to be called after remove(this.nodesDuringInitialization...
       }
 
       callback(errors.length ? errors : null);
     } catch (err) {
-      this.addDebugMsg(targetNode, err, DebugTypes.error);
+      this.addDebugMsg(targetNodeFromInstance, err, DebugTypes.error);
       callback(err);
     }
   }
