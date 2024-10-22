@@ -131,7 +131,8 @@ export class WidgetsInitializerInternal {
     }
     const isDonePromises = [];
 
-    // TODO: fill in this.initializedWidgets with all nodes (also nested ones) synchronously to prevent async init nested widget somewhere else
+    // TODO: create tests for (it should work the way it is implemented right now):
+    // obsolete TODO: fill in this.initializedWidgets with all nodes (also nested ones) synchronously to prevent async init nested widget somewhere else
     //       NOTE: the above will not work if we add widgets in widget init markup!!!
     //             Remember path to targetNode?
     //             Or maybe create separate this.initializedInitializers .set(targetNode, something)

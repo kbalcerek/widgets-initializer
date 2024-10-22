@@ -44,18 +44,6 @@ export class BaseWidget {
   }
 
   async init(done) {
-    // TODO: I think this TODO can be skipped since we will check it in WidgetsInitializer.init()
-    //       The only thing to add is prevent this method to be called outside WidgetsInitializerInternal:
-    // if (caller instanceof WidgetsInitializerInternal) {
-    //   this.isInitialized = true;
-    //   resolve();
-    // } else {
-    //     throw new Error('Unauthorized access to private method BaseWidget.setIsDone()');
-    // }
-    //       if widget (path) already initialized (started initialization) -> do nothing here!
-    //       IMPORTANT: handle case when this class is extended by some other (ex. AWidget), in this case super.init() may be called after
-    //                  some code execution (part of widget initialization). Should we allow some code before super.init()? And if yes,
-    //                  how to "do nothing" if already something has been done? Maybe .init() should allow some API for pre-init() code execution?
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
     if (this.markAsFailedErrors !== undefined) {
