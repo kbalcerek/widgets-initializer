@@ -37,7 +37,7 @@ export class BaseWidget {
     // replace node under which it is stored in initializedWidgets
     WidgetsInitializer.initializedWidgets.set(this.widgetNode, WidgetsInitializer.initializedWidgets.get(this.widgetNodeOrg));
     WidgetsInitializer.initializedWidgets.delete(this.widgetNodeOrg);
-    // TODO: replace in nodesDuringInitialization
+    // TODO: possible Refactor: replace in nodesDuringInitialization is done in WidgetsInitializer, maybe the above should also be there to make it more consistent - rethink!
 
     this.widgetPath = widgetPath;
     this.widgetDomPath = widgetDomPath;

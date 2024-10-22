@@ -90,19 +90,38 @@ export class WidgetsInitializerInternal {
    * 
    * @param {*} targetNode 
    * @param {*} callback 
-   * @param {*} options 
+   * @param {*} options see defaultOptions above for details
    * @param {boolean} addToNodesDI used internally with false to avoid adding nested paths to this.nodesDuringInitialization
    */
   async init(targetNode, callback, options = {}, addToNodesDI = true) {
-    // TODO: cleanup debugLog for this targetNodeDomPath
-    // TODO: check if targetNode isn't already initializing! (also including parents if they are not initializing)
     const configOptions = {
       ...this.defaultOptions,
-      ...{wasTargetNodeTheWidget: false}, // internally used default
+      ...{ wasTargetNodeTheWidget: false, recursiveCall: false }, // internally used default
       ...options,
     };
     let targetNodeFromInstance = targetNode; // when the targetNode is widget node it will be replaced by clone, this property will hold reference to new, updated node
     const targetNodeDomPath = getDomPath(targetNodeFromInstance);
+
+    const callbackInternal = (targetNodeFromInstance) => {
+      const errors = this.debugLog.filter(log => log.domPath.startsWith(targetNodeDomPath) && log.type === DebugTypes.error);
+      callback(errors.length ? errors : null, targetNodeFromInstance);
+    }
+
+    if (
+      (
+        this.isNodeDuringInitialization(targetNodeFromInstance) !== undefined ||
+        this.initializedWidgets.get(targetNodeFromInstance) !== undefined
+      ) &&
+      !configOptions.recursiveCall // continue if recursiveCall
+    ) {
+      // targetNode is during initialization OR
+      // targetNode is inside node that didn't finish yet it's initialization
+      // or already initialized
+      this.addDebugMsg(targetNodeFromInstance, `targetNode is already during initialization (or initialized) (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath})`, DebugTypes.info);
+      callbackInternal(targetNodeFromInstance);
+      return;
+    }
+
     if (addToNodesDI) {
       this.nodesDuringInitialization.push({
         targetNode: targetNodeFromInstance,
@@ -120,11 +139,20 @@ export class WidgetsInitializerInternal {
     //             exist in this.initializedInitializers.
     const nodesToInit = getFirstLevelWidgetNodes(targetNodeFromInstance, configOptions.widgetAttributeName, configOptions.skipTargetNode);
     const initPromises = Array.from(nodesToInit).map(async widgetNode => {
+      const widgetNodeDomPath = getDomPath(widgetNode);
+      if (
+          this.initializedWidgets.get(widgetNode) !== undefined
+      ) {
+        // widgetNode already initialized
+        this.addDebugMsg(targetNodeFromInstance, `widgetNode already initialized (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${widgetNodeDomPath})`, DebugTypes.info);
+        return;
+      }
+
       let widgetNodeFromInstance = undefined;
       const widgetPath = widgetNode.getAttribute(configOptions.widgetAttributeName);
-      this.initializedWidgets.set( // TODO: check if it isn't already initializing/initialized! if exist in this array then: continue
+      this.initializedWidgets.set(
         widgetNode,
-        widgetPath // TODO: change to relativeSelector
+        widgetNodeDomPath
       ); // no lock here is required, because right now we have to remember that this line have to be before any await in this function!!!
       // TODO: create test to test in case somebody gives await in the future before above line,
       //       because in this case this.initializedWidgets cannot be guaranteed to be filled in properly if for
@@ -167,6 +195,7 @@ export class WidgetsInitializerInternal {
                   ...configOptions,
                   skipTargetNode: true,
                   wasTargetNodeTheWidget,
+                  recursiveCall: true,
                 },
                 false
               ).catch((err) => {
@@ -190,8 +219,6 @@ export class WidgetsInitializerInternal {
       this.addDebugMsg(targetNodeFromInstance, `WAITING FOR ALL WIDGETS (inside ${this.initializedWidgets.get(targetNodeFromInstance)?.constructor.name || ''}: ${targetNodeDomPath}) to finish...`, DebugTypes.info);
       await Promise.all(isDonePromises);
       this.addDebugMsg(targetNodeFromInstance, `ALL WIDGETS (inside ${this.initializedWidgets.get(targetNodeFromInstance)?.constructor.name || ''}: ${targetNodeDomPath}) finished initialization. (with or without errors!), cleanup...`, DebugTypes.info);
-
-      const errors = this.debugLog.filter(log => log.domPath.startsWith(targetNodeDomPath) && log.type === DebugTypes.error);
 
       // cleanup (handle errorsInjected)
       const parentDI = this.isNodeDuringInitialization(targetNodeFromInstance.parentNode);
@@ -222,16 +249,16 @@ export class WidgetsInitializerInternal {
         nodesToDestroy.forEach(nodeToDestroy => this.destroy(nodeToDestroy)); // yes, in here, it have to be called after remove(this.nodesDuringInitialization...
       }
 
-      callback(errors.length ? errors : null);
+      callbackInternal(targetNodeFromInstance)
     } catch (err) {
       this.addDebugMsg(targetNodeFromInstance, err, DebugTypes.error);
-      callback(err);
+      callbackInternal(targetNodeFromInstance);
     }
   }
 
   destroy(targetNode, options = {}) {
     const configOptions = { ...this.defaultOptions, ...options };
-    const targetNodeDomPath = getDomPath(targetNode); 
+    const targetNodeDomPath = getDomPath(targetNode);
     const targetNodeDI = this.isNodeDuringInitialization(targetNode);
     if (targetNodeDI !== undefined) {
       // targetNode is during initialization OR
@@ -349,7 +376,11 @@ export class WidgetsInitializerInternal {
         msg.forEach((m) => this.addDebugMsg(targetNodeOrPath, m.msg, m.type));
         return;
       }
-      console.log(msg);
+      if (type === DebugTypes.info) {
+        console.log(msg);
+      } else {
+        console.error(msg);
+      }
       const targetNodeDomPath = typeof(targetNodeOrPath) === 'string'
         ? targetNodeOrPath
         : getDomPath(targetNodeOrPath);

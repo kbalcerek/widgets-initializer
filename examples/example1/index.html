@@ -82,13 +82,15 @@
   <script>
     document.getElementById('init').addEventListener('click', () => {
       if (window.selectedElement) {
+        window.selectedElement = document.querySelector(window.selectedElementDomPath);
         WidgetsInitializer.debug = true;
-        WidgetsInitializer.init(window.selectedElement, (errors) => {
+        WidgetsInitializer.init(window.selectedElement, (errors, newTargetNode) => {
           if (errors) {
             console.log('Init completed with errors', errors);
           } else {
             console.log('Init successful');
           }
+          window.selectedElement = newTargetNode;
         }, {
           resolver: (path) => new Promise((resolve, reject) => {
           let relativePart = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
@@ -141,11 +143,13 @@
       document.getElementById('debugContainer').innerHTML = '';
       window.selectedElement = evt.target;
       const widgetNodeDomPath = MyLibrary.getDomPath(evt.target);
+      window.selectedElementDomPath = widgetNodeDomPath;
       startDebugUpdater(widgetNodeDomPath);
     });
 
     document.getElementById('destroy').addEventListener('click', () => {
       if (window.selectedElement) {
+        window.selectedElement = document.querySelector(window.selectedElementDomPath);
         WidgetsInitializer.destroy(window.selectedElement);
       } else {
         document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Nothing has been selected, so nothing has been destroyed :)</span>`;
