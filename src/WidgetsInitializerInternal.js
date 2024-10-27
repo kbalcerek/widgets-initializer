@@ -173,7 +173,7 @@ export class WidgetsInitializerInternal {
             obj.targetNode === targetNode
           ).targetNode = targetNodeFromInstance;
         }
-        this.initializedWidgets.set(widgetNodeFromInstance, widgetInstance); // TODO: consider to store instances in separate WeakMap or just type (string/object) will indicate initialization state
+        this.initializedWidgets.set(widgetNodeFromInstance, widgetInstance);
         isDonePromises.push(widgetInstance.isDonePromise);
         widgetInstance.init(
           err => {
