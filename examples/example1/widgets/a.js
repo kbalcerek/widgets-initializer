@@ -17,6 +17,13 @@ export default class AWidget extends MyLibrary.BaseWidget {
     const originalInnerHtml = this.titleDiv.innerHTML;
     this.titleDiv.innerHTML = `Widget <B>${this.constructor.name}</B> initializing...`;
 
+    // add "Click Me" text
+    const clickMeElement = document.createElement('span');
+    clickMeElement.innerHTML = `Click Me to test this binding`;
+    clickMeElement.style.textDecoration = 'underline';
+    clickMeElement.onclick = this.onClickMeHandler;
+    this.titleDiv.after(clickMeElement);
+
 
     super.init(
       async (err) => {
@@ -48,6 +55,10 @@ export default class AWidget extends MyLibrary.BaseWidget {
       }
     );
 
+  }
+
+  onClickMeHandler() {
+    alert(`this.constructor.name: ${this.constructor.name}`);
   }
 
   cleanupClasses() {

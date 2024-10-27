@@ -5,4 +5,8 @@ export default class BWidget extends AWidget {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
     super.init(done);
   }
+
+  onClickMeHandler() {
+    alert(`WidgetB says: this.constructor.name: ${this.constructor.name}`);
+  }
 }

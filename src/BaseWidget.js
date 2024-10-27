@@ -41,6 +41,8 @@ export class BaseWidget {
 
     this.widgetPath = widgetPath;
     this.widgetDomPath = widgetDomPath;
+
+    this.bindHandlers();
   }
 
   async init(done) {
@@ -92,5 +94,23 @@ export class BaseWidget {
   fail(errors) {
     this.markAsFailedErrors.push(...errors);
     // TODO: implement this.onFail( pass in done here??? );
+  }
+
+  bindHandlers() {
+    let obj = this;
+    const boundPropNames = [];
+    do {
+      for (let prop of Object.getOwnPropertyNames(obj)) {
+        if (
+          typeof this[prop] === 'function' &&
+          prop.endsWith('Handler') &&
+          boundPropNames.findIndex((p) => p === prop) === -1 // prevent to reassign it twice if method is overridden
+        ) {
+          this[prop] = this[prop].bind(this);
+          boundPropNames.push(prop);
+        }
+      }
+      obj = Object.getPrototypeOf(obj)
+    } while (obj != Object.prototype);
   }
 }
