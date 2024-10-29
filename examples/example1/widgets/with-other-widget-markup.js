@@ -23,7 +23,7 @@ export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
         span.innerHTML = `Hello from WithOtherWidgetMarkupWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
         this.widgetNode.appendChild(span);
 
-        WidgetsInitializer.addDebugMsg(this.widgetNode, `inside WithOtherWidgetMarkupWidget almost Initialized. sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
+        WidgetsInitializer.addDebugMsg(this.widgetNode, `WithOtherWidgetMarkupWidget is done(). sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
         done && done();
       }
     );

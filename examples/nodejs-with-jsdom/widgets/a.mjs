@@ -11,7 +11,7 @@ export default class AWidget extends BaseWidget {
         span.innerHTML = 'Widget A initialized';
         this.widgetNode.appendChild(span);
 
-        console.log('AWidget almost Initialized.');
+        console.log('AWidget is done().');
 
         done && done();
       }

@@ -104,7 +104,7 @@ export class WidgetsInitializerInternal {
 
     const callbackInternal = (targetNodeFromInstance) => {
       const errors = this.debugLog.filter(log => log.domPath.startsWith(targetNodeDomPath) && log.type === DebugTypes.error);
-      callback(errors.length ? errors : null, targetNodeFromInstance);
+      callback(errors.length ? errors : undefined, targetNodeFromInstance);
     }
 
     if (
@@ -175,39 +175,15 @@ export class WidgetsInitializerInternal {
         }
         this.initializedWidgets.set(widgetNodeFromInstance, widgetInstance);
         isDonePromises.push(widgetInstance.isDonePromise);
-        widgetInstance.init(
-          err => {
-            if (err) {
-              this.addDebugMsg(widgetNodeFromInstance, err, DebugTypes.error);
-              widgetInstance.setIsDone(this);
-            } else {
-              // init all children
-              WidgetsInitializer.init(
-                widgetNodeFromInstance,
-                (errChildren) => {
-                  if (errChildren) {
-                    this.addDebugMsg(widgetNodeFromInstance, `${widgetPath} initialization FAILED because children failed, calling setIsDone()...`, DebugTypes.error);
-                  } else {
-                    this.addDebugMsg(widgetNodeFromInstance, `${widgetPath} FULLY Initialized, calling setIsDone()...`, DebugTypes.info);
-                  }
-                  widgetInstance.setIsDone(this);
-                },
-                {
-                  ...configOptions,
-                  skipTargetNode: true,
-                  wasTargetNodeTheWidget,
-                  recursiveCall: true,
-                },
-                false
-              ).catch((err) => {
-                this.addDebugMsg(widgetNodeFromInstance, err, DebugTypes.error);
-                widgetInstance.setIsDone(this);
-              }); 
-            }
-          }
-        ).catch((err) => {
+        widgetInstance.configOptions = {
+          ...configOptions,
+          skipTargetNode: true,
+          wasTargetNodeTheWidget,
+          recursiveCall: true,
+        };
+        widgetInstance.init(() => {}).catch((err) => {
           this.addDebugMsg(widgetNodeFromInstance, err, DebugTypes.error);
-          widgetInstance.setIsDone(this);
+          widgetInstance.finish();
         });
       } catch (err) {
         this.addDebugMsg(widgetNodeFromInstance ?? widgetNode, err, DebugTypes.error);
@@ -385,11 +361,15 @@ export class WidgetsInitializerInternal {
       const targetNodeDomPath = typeof(targetNodeOrPath) === 'string'
         ? targetNodeOrPath
         : getDomPath(targetNodeOrPath);
-      this.debugLog.push({
-        domPath: targetNodeDomPath,
-        type,
-        debugMsg: msg,
-      })
+      this.debugLog.push(this.toDebugLog(msg, targetNodeDomPath, type))
+    }
+  }
+
+  toDebugLog(msg, domPath, type) {
+    return {
+      domPath,
+      type,
+      debugMsg: msg,
     }
   }
 

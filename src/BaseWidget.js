@@ -1,3 +1,4 @@
+import { WidgetsInitializer } from '.';
 import { DebugTypes, getFirstLevelWidgetNodes } from './utils';
 import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
 
@@ -18,7 +19,7 @@ export class BaseWidget {
   setIsDone = undefined;
   isDonePromiseExecutor = (resolve) => {
     this.setIsDone = (caller) => {
-      if (caller instanceof WidgetsInitializerInternal) {
+      if (caller instanceof BaseWidget) { // not perfect, we still can access it from child, or pass in fake caller, but better then nothing :)
         this.isInitialized = true;
         resolve();
       } else {
@@ -26,8 +27,10 @@ export class BaseWidget {
       }
     }
   }
-  isDonePromise = new Promise(this.isDonePromiseExecutor); // NOTE: isDonePromiseExecutor if wrapped into property to reuse it to recreate isDonePromise (in .destroy())
+  isDonePromise = new Promise(this.isDonePromiseExecutor); // NOTE: isDonePromiseExecutor is wrapped into property to reuse it to recreate isDonePromise (in .destroy())
   markAsFailedErrors = undefined;
+  /** used internally, WidgetsInitializer options passed down to WidgetsInitializer.init() that will initialize children */
+  configOptions = undefined;
 
   constructor(widgetNode, widgetPath, widgetDomPath) {
     this.widgetNodeOrg = widgetNode
@@ -49,15 +52,31 @@ export class BaseWidget {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
     if (this.markAsFailedErrors !== undefined) {
-      // TODO: implement this.onFail( pass in done here??? );
-      done && done(this.markAsFailedErrors)
-      // TODO: should there be: .catch()? done() method may also fail by user
-      ;
+      this.markAsFailedErrors.forEach(err => {
+        WidgetsInitializer.addDebugMsg(this.widgetNode, err, DebugTypes.error);
+      });
+      this.finish(done);
       return;
     }
     
-    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
-    done && done();
+    // init all children
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), init all children... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+    WidgetsInitializer.init(
+      this.widgetNode,
+      (errChildren) => {
+        if (errChildren) {
+          WidgetsInitializer.addDebugMsg(this.widgetNode, `initialization FAILED because children failed, calling finish()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.error);
+        } else {
+          WidgetsInitializer.addDebugMsg(this.widgetNode, `FULLY Initialized, calling finish()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+        }
+        this.finish(done);
+      },
+      this.configOptions,
+      false
+    ).catch((err) => {
+      WidgetsInitializer.addDebugMsg(this.widgetNode, err, DebugTypes.error);
+      this.finish(done);
+    }); 
   }
 
   destroy(configOptions) {
@@ -72,6 +91,16 @@ export class BaseWidget {
     this.isDonePromise = new Promise(this.isDonePromiseExecutor);
     this.markAsFailedErrors = undefined;
     this.widgetNode.replaceWith(this.widgetNodeOrg);
+  }
+
+  finish(done) {
+    if (!this.isInitialized) {
+      this.setIsDone(this);
+      WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.finish(), calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+
+      const errors = WidgetsInitializer.debugLog.filter(log => log.domPath.startsWith(this.widgetDomPath) && log.type === DebugTypes.error);
+      done && done(errors.length ? errors : undefined); // we don't have to handle errors thrown by done(), if method provided causes some errors the child class that extends BaseWidget should handle it on it's own
+    }
   }
 
   done(callback) {
@@ -112,5 +141,14 @@ export class BaseWidget {
       }
       obj = Object.getPrototypeOf(obj)
     } while (obj != Object.prototype);
+  }
+
+  /**
+   * 
+   * @param {string} errMsg 
+   * @returns err converted into debugLog format error
+   */
+  toDebugLogError(errMsg) {
+    return WidgetsInitializer.toDebugLog(errMsg, this.widgetDomPath, DebugTypes.error);
   }
 }
