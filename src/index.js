@@ -1,6 +1,6 @@
 
 import { BaseWidget } from "./BaseWidget";
+import { WidgetsInitializer } from "./WidgetsInitializerInternal";
 import { sleep, getDomPath, DebugTypes } from "./utils";
 
-export const WidgetsInitializer = (typeof window !== 'undefined' ? window : global).WidgetsInitializer;
-export { BaseWidget, sleep, getDomPath, DebugTypes };
+export { BaseWidget, WidgetsInitializer, sleep, getDomPath, DebugTypes };

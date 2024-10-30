@@ -1,6 +1,4 @@
-import { WidgetsInitializer } from '.';
 import { DebugTypes, getFirstLevelWidgetNodes } from './utils';
-import { WidgetsInitializerInternal } from './WidgetsInitializerInternal';
 
 export class BaseWidget {
   widgetNode = undefined;
