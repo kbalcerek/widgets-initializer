@@ -5,6 +5,13 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  window.resolveWaitForWidgetADonePromise = undefined;
+  window.waitForWidgetADonePromise = new Promise((resolve) => {
+    window.resolveWaitForWidgetADonePromise = () => {
+      resolve();
+    }
+  });
+
   document.body.innerHTML = `
     <div id="root">
       <div widget="widgets/a" id="widgetA1">
@@ -46,7 +53,12 @@ test('widget A initialized', async () => {
   });
 
   await waitForPromise;
-  expect(document.getElementById('root').getElementsByTagName('div')[0].getElementsByTagName('span')[0].outerHTML).toBe("<span>Widget A initialized</span>");
+  console.log('AFTER await waitForPromise, waiting for window.waitForWidgetADonePromise...');
+
+  await window.waitForWidgetADonePromise; // done() of the widget is called asynchronously, so order of execution (WidgetsInitializer.done() and then Widget.done()) is not preserved
+  console.log('AFTER await window.waitForWidgetADonePromise');
+
+  expect(document.getElementById('root').getElementsByTagName('div')[0].getElementsByTagName('span')[0].outerHTML).toBe("<span>Widget A initialized and is done()</span>");
 });
 
 // test('widget no B & C errors', async () => {
