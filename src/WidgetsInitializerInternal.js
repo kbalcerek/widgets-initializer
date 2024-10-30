@@ -72,17 +72,12 @@ export class WidgetsInitializerInternal {
    * @returns The widget class
    */
   async loadWidgetClass(widgetPath, configOptions) {
-    try {
-      if (configOptions.resolver !== undefined) {
-        const module = await configOptions.resolver(widgetPath);
-        return module.default;
-      } else {
-        const module = await import(`/${widgetPath}.js`);
-        return module.default;
-      }
-    } catch (err) {
-      console.error(err);
-      throw err;
+    if (configOptions.resolver !== undefined) {
+      const module = await configOptions.resolver(widgetPath);
+      return module.default;
+    } else {
+      const module = await import(`/${widgetPath}.js`);
+      return module.default;
     }
   }
 
