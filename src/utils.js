@@ -13,7 +13,7 @@ export const ErrorTypes = Object.freeze({
 
 export const PATH_SEPARATOR = ' > ';
 
-// source: https://stackoverflow.com/a/16742828
+// based on solution found here: https://stackoverflow.com/a/16742828
 export const getDomPath = (el) => {
   var stack = [];
   while ( el.parentNode != null ) {
@@ -21,7 +21,7 @@ export const getDomPath = (el) => {
     var sibIndex = 0;
     for ( var i = 0; i < el.parentNode.childNodes.length; i++ ) {
       var sib = el.parentNode.childNodes[i];
-      if ( sib.nodeName == el.nodeName ) {
+      if ( sib.nodeType == Node.ELEMENT_NODE ) {
         if ( sib === el ) {
           sibIndex = sibCount;
         }
