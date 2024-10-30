@@ -23,6 +23,14 @@ export default class AWidget extends MyLibrary.BaseWidget {
     clickMeElement.style.textDecoration = 'underline';
     clickMeElement.onclick = this.onClickMeHandler;
     this.titleDiv.after(clickMeElement);
+    
+    if (this.widgetNode.dataset.simulateValidationError === "failBefInit") {
+      const errMsg = `AWidget failed, because: we are simulating validation failure here :) failBefInit`;
+      this.fail([errMsg], () => {
+        this.onError([this.toDebugLogError(errMsg)]);
+      });
+      return;
+    }
 
     const sleepTime = Math.floor(Math.random()*5000) // <5000
     await MyLibrary.sleep(sleepTime);
@@ -77,8 +85,8 @@ export default class AWidget extends MyLibrary.BaseWidget {
   }
 
   onError(errors) {
-    this.titleDiv.innerHTML = `Widget <B>${this.constructor.name}</B> error:<br />${
-      errors.map((err) => err.debugMsg.replace('<', '&lt;').replace('>', '&gt;')).join('<br />')
+    this.titleDiv.innerHTML = `Widget <B>${this.constructor.name}</B> errors:<br />${
+      errors.map((err) => '- ' + err.debugMsg.replace('<', '&lt;').replace('>', '&gt;')).join('<br />')
     }`;
     this.changeClassTo(WidgetClasses.error);
   }

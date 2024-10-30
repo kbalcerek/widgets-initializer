@@ -178,7 +178,7 @@ export class WidgetsInitializerInternal {
         };
         widgetInstance.init(() => {}).catch((err) => {
           this.addDebugMsg(widgetNodeFromInstance, err, DebugTypes.error);
-          widgetInstance.finish();
+          widgetInstance.finish(() => {});
         });
       } catch (err) {
         this.addDebugMsg(widgetNodeFromInstance ?? widgetNode, err, DebugTypes.error);
@@ -364,7 +364,7 @@ export class WidgetsInitializerInternal {
     return {
       domPath,
       type,
-      debugMsg: msg,
+      debugMsg: msg + '', // + '' to convert it to string, in case it is not
     }
   }
 

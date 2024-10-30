@@ -10,7 +10,10 @@ export class BaseWidget {
   widgetNodeOrg = undefined;
   widgetPath = undefined;
   widgetDomPath = undefined;
-  isInitialized = false;
+  /** flag that indicates if initialization finished (with or without errors) */
+  isInitializationFinished = false;
+  /** will be set to true if some errors occurs */
+  isInitializationFailed = false;
   /** method called internally after initialization is done.
    * it is resolver of isDonePromise
    */
@@ -18,7 +21,7 @@ export class BaseWidget {
   isDonePromiseExecutor = (resolve) => {
     this.setIsDone = (caller) => {
       if (caller instanceof BaseWidget) { // not perfect, we still can access it from child, or pass in fake caller, but better then nothing :)
-        this.isInitialized = true;
+        this.isInitializationFinished = true;
         resolve();
       } else {
           throw new Error('Unauthorized access to private method BaseWidget.setIsDone()');
@@ -26,9 +29,12 @@ export class BaseWidget {
     }
   }
   isDonePromise = new Promise(this.isDonePromiseExecutor); // NOTE: isDonePromiseExecutor is wrapped into property to reuse it to recreate isDonePromise (in .destroy())
-  markAsFailedErrors = undefined;
   /** used internally, WidgetsInitializer options passed down to WidgetsInitializer.init() that will initialize children */
   configOptions = undefined;
+  /** will be set to true just before async subtree initialization starts (used to decide if .finish() should be executed on fail() immediately or later) */
+  startedInitSubtree = false;
+  /** list of done callbacks added on fail */
+  failDones = [];
 
   constructor(widgetNode, widgetPath, widgetDomPath) {
     this.widgetNodeOrg = widgetNode
@@ -49,16 +55,14 @@ export class BaseWidget {
   async init(done) {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
-    if (this.markAsFailedErrors !== undefined) {
-      this.markAsFailedErrors.forEach(err => {
-        WidgetsInitializer.addDebugMsg(this.widgetNode, err, DebugTypes.error);
-      });
+    if (this.getErrors().length > 0) {
       this.finish(done);
       return;
     }
     
     // init all children
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), init all children... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+    this.startedInitSubtree = true;
     WidgetsInitializer.init(
       this.widgetNode,
       (errChildren) => {
@@ -78,6 +82,11 @@ export class BaseWidget {
   }
 
   destroy(configOptions) {
+    if (!this.isInitializationFinished) {
+      // prevent double execution
+      return;
+    }
+
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.destroy()... BEFORE DESTROY CHILDREN (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
     const widgetNodesToDestroy = getFirstLevelWidgetNodes(this.widgetNode, configOptions.widgetAttributeName, true);
@@ -85,42 +94,61 @@ export class BaseWidget {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `ALL CHILDREN DESTROYED (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
     // cleanup
-    this.isInitialized = false;
+    this.isInitializationFinished = false;
     this.isDonePromise = new Promise(this.isDonePromiseExecutor);
-    this.markAsFailedErrors = undefined;
+    this.isInitializationFailed = false;
     this.widgetNode.replaceWith(this.widgetNodeOrg);
+    this.startedInitSubtree = false;
+    this.failDones = [];
   }
 
   finish(done) {
-    if (!this.isInitialized) {
-      this.setIsDone(this);
-      WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.finish(), calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
-
-      const errors = WidgetsInitializer.debugLog.filter(log => log.domPath.startsWith(this.widgetDomPath) && log.type === DebugTypes.error);
-      done && done(errors.length ? errors : undefined); // we don't have to handle errors thrown by done(), if method provided causes some errors the child class that extends BaseWidget should handle it on it's own
+    if (this.isInitializationFinished) {
+      return;
     }
-  }
 
-  done(callback) {
-    // reverts previous call of fail(errors), but only if it was called! (unmark as failed)
-    
-    // TODO: fullfill the initialization
-    //       After this.fail() (custom failure) is called it will be marked as failed,
-    //       so the done callback (the one passed to init) will be called with errors (including fail(errors))
-    //       this method here should cleanup this.markedAsFailedErrors and
-    //       call callback() that will do the remaining stuff after custom failure
+    this.setIsDone(this);
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.finish(), calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+
+    const errors = this.getErrors();
+    if (errors.length > 0) {
+      this.isInitializationFailed = true;
+    }
+    done && done(errors.length ? errors : undefined); // we don't have to handle errors thrown by done(), if method provided causes some errors the child class that extends BaseWidget should handle it on it's own
+    this.failDones.forEach((d) => d && d(errors));
   }
 
   /**
-   * Will mark this widget to finish initialization with errors.
-   * Can be called to mark this widget as failed initialization because for example
-   * something happened outside of this widget that impacts it cannot be successfully initialized.
+   * If widget didn't finish it's initialization this method will
+   * mark this widget to finish initialization with errors.
    * 
-   * @param {string} errors [optional] 
+   * This method can be called multiple times if widget didn't finish it's initialization.
+   * Errors and done callbacks will be stacked and executed in calling order.
+   * 
+   * NOTE: Can be called to mark this widget as failed initialization because for example
+   * something happened outside of this widget that impacts it cannot be
+   * successfully initialized (instances are available in: WidgetsInitializer.initializedWidgets). // TODO: provide API to get widget instance by path or targetNode
+   * 
+   * @param {string[] | undefined} errors array with errors (cause of failure)
+   * @param {() => {} | undefined} done callback executed after widget finishes
    */
-  fail(errors) {
-    this.markAsFailedErrors.push(...errors);
-    // TODO: implement this.onFail( pass in done here??? );
+  fail(errors, done) {
+    if (this.isInitializationFinished) {
+      throw new Error('Widget already initialized!');
+    }
+
+    if (errors !== undefined && errors.length > 0) {
+      errors.forEach(err => {
+        WidgetsInitializer.addDebugMsg(this.widgetNode, err, DebugTypes.error);
+      });
+    }
+
+    if (this.startedInitSubtree) {
+      this.failDones.push(done);
+    } else {
+      // we can finish only if subtree initialization didn't startup yet, otherwise it will call finish when it finishes
+      this.finish(done);
+    }
   }
 
   bindHandlers() {
@@ -148,5 +176,9 @@ export class BaseWidget {
    */
   toDebugLogError(errMsg) {
     return WidgetsInitializer.toDebugLog(errMsg, this.widgetDomPath, DebugTypes.error);
+  }
+
+  getErrors() {
+    return WidgetsInitializer.debugLog.filter(log => log.domPath.startsWith(this.widgetDomPath) && log.type === DebugTypes.error);
   }
 }

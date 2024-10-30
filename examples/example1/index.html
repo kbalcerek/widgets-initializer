@@ -62,9 +62,9 @@
       </div>
       <div widget="widgets/b">
         <div class="title">Widget B</div>
-        <a widget="widgets/a" style="display: block;">
-          <div class="title">Widget A (in &lt;a&gt; tag)</div>
-        </a>
+        <div widget="widgets/a" data-simulate-validation-error="failBefInit">
+          <div class="title">Widget A (simulate-validation-error="failBefInit")</div>
+        </div>
       </div>
       <a widget="widgets/a" style="display: block;">
         <div class="title">Widget A (in &lt;a&gt; tag)</div>
