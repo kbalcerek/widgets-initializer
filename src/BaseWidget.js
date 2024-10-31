@@ -134,7 +134,7 @@ export class BaseWidget {
    */
   fail(errors, done) {
     if (this.isInitializationFinished) {
-      throw new Error('Widget already initialized!');
+      throw new Error("Widget already initialized (or didn't start initialization)!");
     }
 
     if (errors !== undefined && errors.length > 0) {

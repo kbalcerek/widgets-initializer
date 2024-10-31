@@ -13,6 +13,7 @@
 }
 
 #root {
+  cursor: pointer;
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
