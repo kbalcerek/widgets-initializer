@@ -21,7 +21,10 @@ export const getDomPath = (el) => {
     var sibIndex = 0;
     for ( var i = 0; i < el.parentNode.childNodes.length; i++ ) {
       var sib = el.parentNode.childNodes[i];
-      if ( sib.nodeType == Node.ELEMENT_NODE ) {
+      const ELEMENT_NODE_TYPE = typeof window !== 'undefined'
+        ? Node.ELEMENT_NODE
+        : 1; // right now JSDOM is not required by this library, but in case it will be in the future we can do refactor here with: const Node = new JSDOM('').window.Node;
+      if ( sib.nodeType == ELEMENT_NODE_TYPE ) { 
         if ( sib === el ) {
           sibIndex = sibCount;
         }
