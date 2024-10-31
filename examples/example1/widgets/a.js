@@ -6,15 +6,17 @@ const WidgetClasses = Object.freeze({
 
 export default class AWidget extends MyLibrary.BaseWidget {
   titleDiv = undefined;
+  originalTitleDivInnerHtml = undefined;
+  sleepTime = undefined;
 
-  async init(done) {
+  async init() {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside AWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
 
     this.changeClassTo(WidgetClasses.loading);
 
     // update title
     this.titleDiv = this.widgetNode.querySelector(':scope > div.title');
-    const originalInnerHtml = this.titleDiv.innerHTML;
+    this.originalTitleDivInnerHtml = this.titleDiv.innerHTML;
     this.titleDiv.innerHTML = `Widget <B>${this.constructor.name}</B> initializing...`;
 
     // add "Click Me" text
@@ -26,47 +28,45 @@ export default class AWidget extends MyLibrary.BaseWidget {
     
     if (this.widgetNode.dataset.simulateValidationError === "failBefInit") {
       const errMsg = `AWidget failed, because: we are simulating validation failure here :) failBefInit`;
-      this.fail([errMsg], () => {
-        this.onError([this.toDebugLogError(errMsg)]);
-      });
+      this.fail([errMsg]);
       return;
     }
 
-    const sleepTime = Math.floor(Math.random()*5000) // <5000
-    await MyLibrary.sleep(sleepTime);
+    this.sleepTime = Math.floor(Math.random()*5000) // <5000
+    await MyLibrary.sleep(this.sleepTime);
 
-    super.init(
-      async (errors) => {
-        if (errors) {
-          this.onError(errors);
-          done && done(errors);
-          return;
-        }
+    super.init();
+  }
 
-        if (this.widgetNode.tagName.toLowerCase() === 'a') { // yes, this kind of validation should be done earlier, not in done callback, but I just wanted to give some example how to rise error here
-          const tempErrors = [this.toDebugLogError(`AWidget(${this.widgetDomPath}): <a> tag is not supported`)];
-          this.onError(tempErrors);
-          done && done(tempErrors);
-          return;
-        }
+  async done (errors) {
+    if (errors) {
+      this.onError(errors);
+      super.done(errors);
+      return;
+    }
 
-        this.titleDiv.innerHTML = originalInnerHtml;
+    if (this.widgetNode.tagName.toLowerCase() === 'a') { // yes, this kind of validation should be done earlier, not in done callback, but I just wanted to give some example how to rise error here
+      WidgetsInitializer.addDebugMsg(this.widgetNode, `AWidget(${this.widgetDomPath}): <a> tag is not supported (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.error);
+      const tempErrors = this.getErrors();
+      this.onError(tempErrors);
+      super.done(tempErrors);
+      return;
+    }
 
-        const helloMsgElement = document.createElement('div');
-        helloMsgElement.innerHTML = `Hello from AWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
-        this.widgetNode.appendChild(helloMsgElement);
-        
-        this.changeClassTo(WidgetClasses.done);
+    this.titleDiv.innerHTML = this.originalTitleDivInnerHtml;
 
-        WidgetsInitializer.addDebugMsg(this.widgetNode, `AWidget inside done() is doing some async stuff... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
-        const sleepTimeInDone = Math.floor(Math.random()*5000) // <5000
-        await MyLibrary.sleep(sleepTimeInDone);
+    const helloMsgElement = document.createElement('div');
+    helloMsgElement.innerHTML = `Hello from AWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${this.sleepTime}`;
+    this.widgetNode.appendChild(helloMsgElement);
+    
+    this.changeClassTo(WidgetClasses.done);
 
-        WidgetsInitializer.addDebugMsg(this.widgetNode, `AWidget is done(). sleepTimeInDone: ${sleepTimeInDone}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
-        done && done();
-      }
-    );
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `AWidget inside done() is doing some async stuff... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
+    const sleepTimeInDone = Math.floor(Math.random()*5000) // <5000
+    await MyLibrary.sleep(sleepTimeInDone);
 
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `AWidget is done(). sleepTimeInDone: ${sleepTimeInDone}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
+    super.done(errors);
   }
 
   onClickMeHandler() {

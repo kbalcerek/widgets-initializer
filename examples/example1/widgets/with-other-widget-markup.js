@@ -1,5 +1,5 @@
 export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
-  async init(done) {
+  async init() {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside WithOtherWidgetMarkupWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
 
     this.widgetNode.style.fontSize = '13px';
@@ -14,19 +14,19 @@ export default class WithOtherWidgetMarkupWidget extends MyLibrary.BaseWidget {
     `;
     this.widgetNode.appendChild(span);
 
-    super.init(
-      async () => {
-        const sleepTime = 10; // Math.floor(Math.random()*5000) // <5000
-        await MyLibrary.sleep(sleepTime);
+    super.init();
+  }
 
-        const span = document.createElement('span');
-        span.innerHTML = `Hello from WithOtherWidgetMarkupWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
-        this.widgetNode.appendChild(span);
+  async done (errors) {
+    const sleepTime = 10; // Math.floor(Math.random()*5000) // <5000
+    await MyLibrary.sleep(sleepTime);
 
-        WidgetsInitializer.addDebugMsg(this.widgetNode, `WithOtherWidgetMarkupWidget is done(). sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
-        done && done();
-      }
-    );
+    const span = document.createElement('span');
+    span.innerHTML = `Hello from WithOtherWidgetMarkupWidget:<br /><B>${this.constructor.name}</B> initialized, sleepTime: ${sleepTime}`;
+    this.widgetNode.appendChild(span);
 
+    WidgetsInitializer.addDebugMsg(this.widgetNode, `WithOtherWidgetMarkupWidget is done(). sleepTime: ${sleepTime}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
+    
+    super.done(errors);
   }
 }

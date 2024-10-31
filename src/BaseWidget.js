@@ -33,8 +33,6 @@ export class BaseWidget {
   configOptions = undefined;
   /** will be set to true just before async subtree initialization starts (used to decide if .finish() should be executed on fail() immediately or later) */
   startedInitSubtree = false;
-  /** list of done callbacks added on fail */
-  failDones = [];
 
   constructor(widgetNode, widgetPath, widgetDomPath) {
     this.widgetNodeOrg = widgetNode
@@ -52,11 +50,11 @@ export class BaseWidget {
     this.bindHandlers();
   }
 
-  async init(done) {
+  async init() {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
 
     if (this.getErrors().length > 0) {
-      this.finish(done);
+      this.finish();
       return;
     }
     
@@ -71,15 +69,24 @@ export class BaseWidget {
         } else {
           WidgetsInitializer.addDebugMsg(this.widgetNode, `FULLY Initialized, calling finish()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
         }
-        this.finish(done);
+        this.finish();
       },
       this.configOptions,
       false
     ).catch((err) => {
       WidgetsInitializer.addDebugMsg(this.widgetNode, err, DebugTypes.error);
-      this.finish(done);
+      this.finish();
     }); 
   }
+
+  /**
+   * callback called when widget finishes it's initialization
+   * 
+   * NOTE: when overriding it can become async function too
+   * 
+   * @param {{ domPath: string; type: DebugTypes; debugMsg: string; }[] | undefined} errors list of errors or undefined
+   */
+  done (errors) { }
 
   destroy(configOptions) {
     if (!this.isInitializationFinished) {
@@ -99,10 +106,9 @@ export class BaseWidget {
     this.isInitializationFailed = false;
     this.widgetNode.replaceWith(this.widgetNodeOrg);
     this.startedInitSubtree = false;
-    this.failDones = [];
   }
 
-  finish(done) {
+  finish() {
     if (this.isInitializationFinished) {
       return;
     }
@@ -114,8 +120,17 @@ export class BaseWidget {
     if (errors.length > 0) {
       this.isInitializationFailed = true;
     }
-    done && done(errors.length ? errors : undefined); // we don't have to handle errors thrown by done(), if method provided causes some errors the child class that extends BaseWidget should handle it on it's own
-    this.failDones.forEach((d) => d && d(errors));
+
+    try {
+      const doneResult = this.done(errors.length ? errors : undefined);
+      if (this.done.constructor.name === 'AsyncFunction') {
+        doneResult.catch((err) => {
+          WidgetsInitializer.addDebugMsg(this.widgetNode, `async Widget.done() thrown error: ${err} (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.error);
+        });
+      }
+    } catch (err) {
+      WidgetsInitializer.addDebugMsg(this.widgetNode, `Widget.done() thrown error: ${err} (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.error);
+    }
   }
 
   /**
@@ -123,16 +138,15 @@ export class BaseWidget {
    * mark this widget to finish initialization with errors.
    * 
    * This method can be called multiple times if widget didn't finish it's initialization.
-   * Errors and done callbacks will be stacked and executed in calling order.
+   * More errors will be added
    * 
    * NOTE: Can be called to mark this widget as failed initialization because for example
    * something happened outside of this widget that impacts it cannot be
    * successfully initialized (instances are available in: WidgetsInitializer.initializedWidgets). // TODO: provide API to get widget instance by path or targetNode
    * 
    * @param {string[] | undefined} errors array with errors (cause of failure)
-   * @param {() => {} | undefined} done callback executed after widget finishes
    */
-  fail(errors, done) {
+  fail(errors) {
     if (this.isInitializationFinished) {
       throw new Error("Widget already initialized (or didn't start initialization)!");
     }
@@ -143,11 +157,9 @@ export class BaseWidget {
       });
     }
 
-    if (this.startedInitSubtree) {
-      this.failDones.push(done);
-    } else {
+    if (!this.startedInitSubtree) {
       // we can finish only if subtree initialization didn't startup yet, otherwise it will call finish when it finishes
-      this.finish(done);
+      this.finish();
     }
   }
 

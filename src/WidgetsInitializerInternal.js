@@ -176,9 +176,9 @@ export class WidgetsInitializerInternal {
           wasTargetNodeTheWidget,
           recursiveCall: true,
         };
-        widgetInstance.init(() => {}).catch((err) => {
+        widgetInstance.init().catch((err) => {
           this.addDebugMsg(widgetNodeFromInstance, err, DebugTypes.error);
-          widgetInstance.finish(() => {});
+          widgetInstance.finish();
         });
       } catch (err) {
         this.addDebugMsg(widgetNodeFromInstance ?? widgetNode, err, DebugTypes.error);
