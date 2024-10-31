@@ -10,6 +10,7 @@
   <div class="buttons">
     <button id="init">Init</button>
     <button id="destroy">Destroy</button>
+    <button id="failBtn">Fail</button>
   </div>
 
   <div class="legendContainer">
@@ -57,8 +58,8 @@
     </div>
     <div class="container">
       <div class="title">Container</div>
-      <div widget="widgets/c">
-        <div class="title">Widget C</div>
+      <div widget="widgets/c" data-simulate-long-init="5000">
+        <div class="title">Widget C (will sleep 5000ms)</div>
       </div>
       <div widget="widgets/b">
         <div class="title">Widget B</div>
@@ -168,6 +169,19 @@
         WidgetsInitializer.destroy(window.selectedElement);
       } else {
         document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Nothing has been selected, so nothing has been destroyed :)</span>`;
+      }
+    });
+
+    document.getElementById('failBtn').addEventListener('click', () => {
+      if (window.selectedElement) {
+        window.selectedElement = document.querySelector(window.selectedElementDomPath);
+        if (WidgetsInitializer.initializedWidgets.get(window.selectedElement) ===  undefined) {
+          document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Selected node is not a widget node, or initialization didn't start</span>`;
+          return;
+        }
+        WidgetsInitializer.initializedWidgets.get(window.selectedElement).fail(['Failed by "Fail" button click.']);
+      } else {
+        document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Nothing has been selected, so nothing can be failed :)</span>`;
       }
     });
   </script>

@@ -356,7 +356,8 @@ export class WidgetsInitializerInternal {
       const targetNodeDomPath = typeof(targetNodeOrPath) === 'string'
         ? targetNodeOrPath
         : getDomPath(targetNodeOrPath);
-      this.debugLog.push(this.toDebugLog(msg, targetNodeDomPath, type))
+      this.debugLog.push(this.toDebugLog(msg, targetNodeDomPath, type));
+      // TODO: create separate errors list cleared per initialization
     }
   }
 

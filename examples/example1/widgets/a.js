@@ -9,13 +9,17 @@ export default class AWidget extends MyLibrary.BaseWidget {
   originalTitleDivInnerHtml = undefined;
   sleepTime = undefined;
 
+  constructor(widgetNode, widgetPath, widgetDomPath) {
+    super(widgetNode, widgetPath, widgetDomPath);
+    this.titleDiv = this.widgetNode.querySelector(':scope > div.title');
+  }
+
   async init() {
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside AWidget.init(), initializing... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
 
     this.changeClassTo(WidgetClasses.loading);
 
     // update title
-    this.titleDiv = this.widgetNode.querySelector(':scope > div.title');
     this.originalTitleDivInnerHtml = this.titleDiv.innerHTML;
     this.titleDiv.innerHTML = `Widget <B>${this.constructor.name}</B> initializing...`;
 
@@ -31,6 +35,11 @@ export default class AWidget extends MyLibrary.BaseWidget {
       this.fail([errMsg]);
       return;
     }
+    
+    if (this.widgetNode.dataset.simulateLongInit) {
+      await MyLibrary.sleep(this.widgetNode.dataset.simulateLongInit);
+    }
+    
 
     this.sleepTime = Math.floor(Math.random()*5000) // <5000
     await MyLibrary.sleep(this.sleepTime);

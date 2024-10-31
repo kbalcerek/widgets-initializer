@@ -106,6 +106,7 @@ export class BaseWidget {
     this.isInitializationFailed = false;
     this.widgetNode.replaceWith(this.widgetNodeOrg);
     this.startedInitSubtree = false;
+    // TODO: create separate debugErrorLog (next to debugLog) and clean it up here
   }
 
   finish() {
