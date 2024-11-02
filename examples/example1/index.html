@@ -7,9 +7,19 @@
 </head>
 
 <body>
-  <div class="buttons">
+  <div class="tooltip" id="doneBtnTooltip">
+    We cannot make the widget done while it didn't finish it's its initialization yet,<br />
+    because it would make no sens, so<br />
+    How this button works? Let's say we have some widget,<br />
+    in our case "Widget C (waits for external task...)",<br />
+    that needs to wait for some external task to be finished<br />
+    this button here simulates the ext. task is done.</div>
+  <div class="tooltip"  id="failBtnTooltip">Hint: there is special "Widget C (will sleep 5000ms)" to easier test this button</div>
+  
+  <div class="buttons" id="buttonsContainer">
     <button id="init">Init</button>
     <button id="destroy">Destroy</button>
+    <button id="doneBtn">Done</button>
     <button id="failBtn">Fail</button>
   </div>
 
@@ -54,6 +64,9 @@
       <div class="title">Widget A</div>
       <div widget="widgets/with-other-widget-markup">
         <div class="title">Widget with-other-widget-markup</div>
+      </div>
+      <div widget="widgets/c" data-simulate-wait-for-ext-task="true">
+        <div class="title">Widget C (waits for external task...)</div>
       </div>
     </div>
     <div class="container">
@@ -172,6 +185,19 @@
       }
     });
 
+    document.getElementById('doneBtn').addEventListener('click', () => {
+
+    });
+
+    document.getElementById('doneBtn').addEventListener('mouseover', () => {
+      document.getElementById('doneBtnTooltip').style.display = 'block';
+      positionTooltip('doneBtnTooltip', 'doneBtn');
+    });
+
+    document.getElementById('doneBtn').addEventListener('mouseout', () => {
+      document.getElementById('doneBtnTooltip').style.display = 'none';
+    });
+
     document.getElementById('failBtn').addEventListener('click', () => {
       if (window.selectedElement) {
         window.selectedElement = document.querySelector(window.selectedElementDomPath);
@@ -184,6 +210,20 @@
         document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Nothing has been selected, so nothing can be failed :)</span>`;
       }
     });
+
+    document.getElementById('failBtn').addEventListener('mouseover', () => {
+      document.getElementById('failBtnTooltip').style.display = 'block';
+      positionTooltip('failBtnTooltip', 'failBtn');
+    });
+
+    document.getElementById('failBtn').addEventListener('mouseout', () => {
+      document.getElementById('failBtnTooltip').style.display = 'none';
+    });
+
+    function positionTooltip(tooltipId, btnId) {
+      document.getElementById(tooltipId).style.top = document.getElementById('buttonsContainer').offsetTop + document.getElementById('buttonsContainer').offsetHeight + 8 + 'px'; // 8 is bottom padding
+      document.getElementById(tooltipId).style.left = document.getElementById(btnId).offsetLeft - (document.getElementById(tooltipId).offsetWidth / 2) + 'px';
+    }
   </script>
 </body>
 
