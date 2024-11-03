@@ -110,7 +110,7 @@ export class WidgetsInitializerInternal {
       !configOptions.recursiveCall // continue if recursiveCall
     ) {
       // targetNode is during initialization OR
-      // targetNode is inside node that didn't finish yet it's initialization
+      // targetNode is inside node that didn't finish it's initialization yet
       // or already initialized
       this.addDebugMsg(targetNodeFromInstance, `targetNode is already during initialization (or initialized) (inside ${this.initializedWidgets.get(targetNode)?.constructor.name || ''}: ${targetNodeDomPath})`, DebugTypes.info);
       callbackInternal(targetNodeFromInstance);

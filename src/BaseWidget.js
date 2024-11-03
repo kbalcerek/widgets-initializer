@@ -29,6 +29,21 @@ export class BaseWidget {
     }
   }
   isDonePromise = new Promise(this.isDonePromiseExecutor); // NOTE: isDonePromiseExecutor is wrapped into property to reuse it to recreate isDonePromise (in .destroy())
+  
+  /** when set to true widget will not finish it's initialization until "externalDone" is called. */
+  waitForExternalDone = false;
+  setIsExternalDone = undefined;
+  isExternalDonePromiseExecutor = (resolve) => {
+    this.setIsExternalDone = (caller) => {
+      if (caller instanceof BaseWidget) { // not perfect, we still can access it from child, or pass in fake caller, but better then nothing :)
+        resolve();
+      } else {
+          throw new Error('Unauthorized access to private method BaseWidget.setIsExternalDone()');
+      }
+    }
+  }
+  isExternalDonePromise = new Promise(this.isExternalDonePromiseExecutor); // NOTE: isExternalDonePromiseExecutor is wrapped into property to reuse it to recreate isExternalDonePromise (in .destroy())
+  
   /** used internally, WidgetsInitializer options passed down to WidgetsInitializer.init() that will initialize children */
   configOptions = undefined;
   /** will be set to true just before async subtree initialization starts (used to decide if .finish() should be executed on fail() immediately or later) */
@@ -63,10 +78,14 @@ export class BaseWidget {
     this.startedInitSubtree = true;
     WidgetsInitializer.init(
       this.widgetNode,
-      (errChildren) => {
+      async (errChildren) => {
         if (errChildren) {
           WidgetsInitializer.addDebugMsg(this.widgetNode, `initialization FAILED because children failed, calling finish()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.error);
         } else {
+          if (this.waitForExternalDone) {
+            WidgetsInitializer.addDebugMsg(this.widgetNode, `waiting for waitForExternalDone... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
+            await this.isExternalDonePromise;
+          }
           WidgetsInitializer.addDebugMsg(this.widgetNode, `FULLY Initialized, calling finish()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
         }
         this.finish();
@@ -88,6 +107,16 @@ export class BaseWidget {
    */
   done (errors) { }
 
+  /** This method works with cooperation of "waitForExternalDone" property flag. If flag is set to true
+   * widget will not finish it's initialization until this method here is called.
+   * 
+   * Possible scenario: widget is depended of some other async think that needs to be done before widget finishes,
+   *                    for example some field needs to be filled in.
+   */
+  externalDone () {
+    this.setIsExternalDone(this);
+  }
+
   destroy(configOptions) {
     if (!this.isInitializationFinished) {
       // prevent double execution
@@ -103,6 +132,8 @@ export class BaseWidget {
     // cleanup
     this.isInitializationFinished = false;
     this.isDonePromise = new Promise(this.isDonePromiseExecutor);
+    this.waitForExternalDone = false;
+    this.isExternalDonePromise = new Promise(this.isExternalDonePromiseExecutor);
     this.isInitializationFailed = false;
     this.widgetNode.replaceWith(this.widgetNodeOrg);
     this.startedInitSubtree = false;

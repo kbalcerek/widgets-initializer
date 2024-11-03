@@ -35,3 +35,7 @@ See details in [/react-app/README.md](https://github.com/kbalcerek/widgets-initi
 
 Library internally uses .cloneNode() on [widget] nodes to remember their original state. That leads to downside that widget nodes after initialization will loose any event listeners attached. They have to be re-applied in widget class in .afterInit() - or some other method: to be implemented.
 For simplicity I didn't handle it right now. As a workaround that could be implemented to fully support event listeners we could implement wrapper around addEventListener() and apply them in BaseWidget class just right after cloning.
+
+# Wait for external task
+
+Widget can wait for external task to finish before it finishes it's initialization. For example if some field needs to be filled in before we show up our widget. In this case "waitForExternalDone" property of BaseWidget have to be set to true by extending class and if it is ready "externalDone" method should be called.
