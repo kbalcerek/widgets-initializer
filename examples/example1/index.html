@@ -51,15 +51,6 @@
         </div>
       </div>
     </div>
-    <div widget="widgets/z">
-      <div class="title">Widget Z</div>
-      <div class="container">
-        <div class="title">Container</div>
-        <div widget="widgets/c">
-          <div class="title">Widget C</div>
-        </div>
-      </div>
-    </div>
     <div widget="widgets/a">
       <div class="title">Widget A</div>
       <div widget="widgets/with-other-widget-markup">
@@ -87,6 +78,9 @@
         </div>
       </a>
     </div>
+    <a widget="widgets/a">
+      <div class="title">Widget A (in &lt;a&gt; tag)</div>
+    </a>
     <div class="container">
       <div class="title">Container</div>
       <div class="container">
@@ -102,9 +96,15 @@
     <div class="container">
       <div class="title">Container</div>
     </div>
-    <a widget="widgets/a">
-      <div class="title">Widget A (in &lt;a&gt; tag)</div>
-    </a>
+    <div widget="widgets/z">
+      <div class="title">Widget Z (there is no <B>z.js</B> class for this widget, so it doesn't init (and neither does subtree). See the error in log)</div>
+      <div class="container">
+        <div class="title">Container</div>
+        <div widget="widgets/c">
+          <div class="title">Widget C</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="../../dist/lib.script.js"></script>
