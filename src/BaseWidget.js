@@ -75,7 +75,7 @@ export class BaseWidget {
     
     // init all children
     WidgetsInitializer.addDebugMsg(this.widgetNode, `inside BaseWidget.init(), init all children... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
-    this.startedInitSubtree = true;
+    await this.onBeforeSubtreeInit();
     WidgetsInitializer.init(
       this.widgetNode,
       async (errChildren) => {
@@ -86,6 +86,7 @@ export class BaseWidget {
             WidgetsInitializer.addDebugMsg(this.widgetNode, `waiting for waitForExternalDone... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
             await this.isExternalDonePromise;
           }
+          await this.onAfterSubtreeInit();
           WidgetsInitializer.addDebugMsg(this.widgetNode, `FULLY Initialized, calling finish()... (${this.constructor.name}: ${this.widgetDomPath})`, DebugTypes.info);
         }
         this.finish();
@@ -116,6 +117,20 @@ export class BaseWidget {
   externalDone () {
     this.setIsExternalDone(this);
   }
+
+  /** Executed just before subtree of this widget is initialized.
+   * 
+   * NOTE: It can be async method, if it is, widget will await for it to finish before subtree is initialized
+   */
+  onBeforeSubtreeInit () {
+    this.startedInitSubtree = true;
+  }
+
+  /** Executed after subtree of this widget is initialized (only on success initialization)
+   * 
+   * NOTE: It can be async method, if it is, widget will await for it before finishes.
+   */
+  onAfterSubtreeInit () { }
 
   destroy(configOptions) {
     if (!this.isInitializationFinished) {

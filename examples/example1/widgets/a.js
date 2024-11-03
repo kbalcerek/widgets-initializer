@@ -40,12 +40,6 @@ export default class AWidget extends MyLibrary.BaseWidget {
       await MyLibrary.sleep(this.widgetNode.dataset.simulateLongInit);
     }
     
-    if (this.widgetNode.dataset.simulateWaitForExtTask) {
-      this.waitForExternalDone = true;
-      await MyLibrary.sleep(1000);
-      this.titleDiv.innerHTML = `Widget <B>${this.constructor.name}</B> initializing (waiting for ext. done, Click "Done" button to finish)...`;
-    }
-    
 
     this.sleepTime = Math.floor(Math.random()*5000) // <5000
     await MyLibrary.sleep(this.sleepTime);
@@ -82,6 +76,15 @@ export default class AWidget extends MyLibrary.BaseWidget {
 
     WidgetsInitializer.addDebugMsg(this.widgetNode, `AWidget is done(). sleepTimeInDone: ${sleepTimeInDone}, calling done()... (${this.constructor.name}: ${this.widgetDomPath})`, MyLibrary.DebugTypes.info);
     super.done(errors);
+  }
+
+  onBeforeSubtreeInit() {
+    super.onBeforeSubtreeInit();
+
+    if (this.widgetNode.dataset.simulateWaitForExtTask) {
+      this.waitForExternalDone = true;
+      this.titleDiv.innerHTML = `Widget <B>${this.constructor.name}</B> initializing (waiting for ext. done, Click "Done" button to finish)...`;
+    }
   }
 
   onClickMeHandler() {
