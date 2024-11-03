@@ -152,7 +152,7 @@ export class BaseWidget {
     this.isInitializationFailed = false;
     this.widgetNode.replaceWith(this.widgetNodeOrg);
     this.startedInitSubtree = false;
-    // TODO: create separate debugErrorLog (next to debugLog) and clean it up here
+    WidgetsInitializer.clearDebugErrorLogByPath(this.widgetDomPath);
   }
 
   finish() {
@@ -238,6 +238,6 @@ export class BaseWidget {
   }
 
   getErrors() {
-    return WidgetsInitializer.debugLog.filter(log => log.domPath.startsWith(this.widgetDomPath) && log.type === DebugTypes.error);
+    return WidgetsInitializer.getErrors(this.widgetDomPath);
   }
 }

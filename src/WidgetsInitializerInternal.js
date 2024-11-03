@@ -65,6 +65,8 @@ export class WidgetsInitializerInternal {
    * ]
    */
   debugLog = [];
+  /** the same as debugLog, but it contains only errors, and is cleared after widget destroy */
+  debugErrorLog = [];
 
   /**
    * 
@@ -98,7 +100,7 @@ export class WidgetsInitializerInternal {
     const targetNodeDomPath = getDomPath(targetNodeFromInstance);
 
     const callbackInternal = (targetNodeFromInstance) => {
-      const errors = this.debugLog.filter(log => log.domPath.startsWith(targetNodeDomPath) && log.type === DebugTypes.error);
+      const errors = this.getErrors(targetNodeDomPath);
       callback(errors.length ? errors : undefined, targetNodeFromInstance);
     }
 
@@ -350,7 +352,9 @@ export class WidgetsInitializerInternal {
         ? targetNodeOrPath
         : getDomPath(targetNodeOrPath);
       this.debugLog.push(this.toDebugLog(msg, targetNodeDomPath, type));
-      // TODO: create separate errors list cleared per initialization
+      if (type === DebugTypes.error) {
+        this.debugErrorLog.push(this.toDebugLog(msg, targetNodeDomPath, type));
+      }
     }
   }
 
@@ -360,6 +364,18 @@ export class WidgetsInitializerInternal {
       type,
       debugMsg: msg + '', // + '' to convert it to string, in case it is not
     }
+  }
+
+  getErrors(domPath) {
+    if (domPath === undefined) {
+      return this.debugErrorLog;
+    }
+    
+    return this.debugErrorLog.filter(log => log.domPath.startsWith(domPath));
+  }
+
+  clearDebugErrorLogByPath(domPath) {
+    remove(this.debugErrorLog, log => log.domPath.startsWith(domPath));
   }
 
   addToErrorsInjected(errorsInjected, errorType, obj) {
