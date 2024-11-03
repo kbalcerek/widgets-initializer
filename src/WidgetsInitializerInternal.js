@@ -229,7 +229,7 @@ export class WidgetsInitializerInternal {
       // targetNode is during initialization OR
       // targetNode is inside node that didn't finish yet it's initialization
       // -> send WidgetDestroyed error
-      this.addDebugMsg(targetNode, `WidgetsInitializer.destroy(): targetNode is during initialization -> send WidgetDestroyed error (${targetNodeDomPath})`, DebugTypes.info);
+      this.addDebugMsg(targetNode, `WidgetsInitializer.destroy(): targetNode (or it's parent) is during initialization -> send WidgetDestroyed error (${targetNodeDomPath})`, DebugTypes.info);
       this.addToErrorsInjected(
         targetNodeDI.errorsInjected,
         ErrorTypes.WidgetDestroyed,

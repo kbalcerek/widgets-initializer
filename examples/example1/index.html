@@ -7,18 +7,27 @@
 </head>
 
 <body>
+  <div class="tooltip" id="destroyBtnTooltip">
+    NOTE: be aware that when you initialize parent path (like for ex. "<B>body > div:nth-child(7)</B>")<br />
+    it will not finish it's initialization until "Done" button is clicked for<br />
+    "Widget C (will wait for external task)"<br />
+    so this button here will only send "WidgetDestroyed" error of the selected widget<br />
+    and it will be queued to destroy after initialization finishes.<br />
+    If you want to see immediate widget destroy, finish the "Widget C (will wait for external task)" at first.
+  </div>
   <div class="tooltip" id="doneBtnTooltip">
     We cannot make the widget done while it didn't finish it's its initialization yet,<br />
     we cannot speed it up because it would make no sens, so<br />
     How this button works? Let's say we have some widget,<br />
     in our case "Widget C (will wait for external task)",<br />
     that needs to wait for some external task to be finished<br />
-    this button here simulates the ext. task is done.</div>
+    this button here simulates the ext. task is done.
+  </div>
   <div class="tooltip"  id="failBtnTooltip">Hint: there is special "Widget C (will sleep 5000ms)" to easier test this button</div>
   
   <div class="buttons" id="buttonsContainer">
     <button id="init">Init</button>
-    <button id="destroy">Destroy</button>
+    <button id="destroyBtn">Destroy</button>
     <button id="doneBtn">Done</button>
     <button id="failBtn">Fail</button>
   </div>
@@ -184,13 +193,22 @@
       startDebugUpdater(widgetNodeDomPath);
     });
 
-    document.getElementById('destroy').addEventListener('click', () => {
+    document.getElementById('destroyBtn').addEventListener('click', () => {
       if (window.selectedElement) {
         window.selectedElement = document.querySelector(window.selectedElementDomPath);
         WidgetsInitializer.destroy(window.selectedElement);
       } else {
         document.getElementById('selectorPathElement').innerHTML = `<span style="color: red;">Nothing has been selected, so nothing has been destroyed :)</span>`;
       }
+    });
+
+    document.getElementById('destroyBtn').addEventListener('mouseover', () => {
+      document.getElementById('destroyBtnTooltip').style.display = 'block';
+      positionTooltip('destroyBtnTooltip', 'doneBtn');
+    });
+
+    document.getElementById('destroyBtn').addEventListener('mouseout', () => {
+      document.getElementById('destroyBtnTooltip').style.display = 'none';
     });
 
     document.getElementById('doneBtn').addEventListener('click', () => {
