@@ -150,6 +150,15 @@
       clearInterval(window.updateDebugInterval);
       let oldLength = 0;
       const updateFunc = () => {
+        const isWidgetNode = window.selectedElement.getAttribute('widget') === null ? false : true;
+        const isInitialized = WidgetsInitializer.initializedWidgets.get(window.selectedElement) !==  undefined;
+        document.getElementById('selectorPathElement').innerText = `` +
+          `${widgetNodeDomPath}         ` +
+          `(HTML: ${window.selectedElement.outerHTML.substring(0, 33).replaceAll('\n', '')}...)         ` +
+          `is Widget node: ${isWidgetNode ? 'Yes' : 'No'}         ` +
+          `is Initialized: ${isInitialized ? 'Yes' : 'No'}` +
+        ``;
+        
         const filteredLog = WidgetsInitializer.debugLog.filter(log => log.domPath.startsWith(widgetNodeDomPath));
         if (filteredLog.length > oldLength) {
           oldLength = filteredLog.length;
@@ -168,7 +177,6 @@
     }
 
     document.getElementById('root').addEventListener('click', (evt) => {
-      document.getElementById('selectorPathElement').innerText = `${MyLibrary.getDomPath(evt.target)}         (HTML: ${evt.target.outerHTML.substring(0, 33).replaceAll('\n', '')}...)`;
       document.getElementById('debugContainer').innerHTML = '';
       window.selectedElement = evt.target;
       const widgetNodeDomPath = MyLibrary.getDomPath(evt.target);
